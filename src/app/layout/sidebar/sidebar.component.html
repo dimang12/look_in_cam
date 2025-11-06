@@ -1,0 +1,40 @@
+<aside class="app-sidebar" [class.collapsed]="isCollapsed">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <a href="/" class="logo-link">
+        <img src="assets/images/desktop-logo.png" alt="logo" class="desktop-logo">
+        <img src="assets/images/toggle-logo.png" alt="logo" class="toggle-logo">
+      </a>
+    </div>
+  </div>
+  <div class="sidebar-body">
+    <nav class="sidebar-menu">
+      <ul class="menu-list">
+        <li *ngFor="let item of menuItems" class="menu-item" [class.has-submenu]="hasSubmenu(item)" [class.active]="selectedMenuItem?.label === item.label">
+          <a 
+            *ngIf="!hasSubmenu(item)"
+            [routerLink]="item.route" 
+            routerLinkActive="active" 
+            [routerLinkActiveOptions]="{exact: item.route === '/dashboard'}" 
+            class="menu-link"
+            [title]="item.label"
+            (click)="selectMenuItem(item)">
+            <i class="material-icons">{{ item.icon }}</i>
+            <span class="menu-tooltip">{{ item.label }}</span>
+          </a>
+          <a 
+            *ngIf="hasSubmenu(item)"
+            (click)="selectMenuItem(item)"
+            href="javascript:void(0)"
+            class="menu-link"
+            [class.active]="selectedMenuItem?.label === item.label"
+            [title]="item.label">
+            <i class="material-icons">{{ item.icon }}</i>
+            <span class="menu-tooltip">{{ item.label }}</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</aside>
+

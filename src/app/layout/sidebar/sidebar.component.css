@@ -1,0 +1,138 @@
+.app-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 70px;
+  height: 100vh;
+  background: #f8f9fa;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.04);
+  transition: width 0.3s ease;
+  z-index: 999;
+  overflow-y: auto;
+  border-right: 1px solid #e9ecef;
+}
+
+.app-sidebar.collapsed {
+  width: 70px;
+}
+
+.sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-link {
+  display: block;
+}
+
+.desktop-logo {
+  max-width: 100%;
+  height: auto;
+  display: none;
+}
+
+.toggle-logo {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.app-sidebar.collapsed .desktop-logo {
+  display: none;
+}
+
+.app-sidebar.collapsed .toggle-logo {
+  display: block;
+}
+
+.sidebar-body {
+  padding: 1rem 0;
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-item {
+  margin: 0.25rem 0;
+}
+
+.menu-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  color: #6c757d;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+  border-radius: 0.5rem;
+  margin: 0.25rem 0.5rem;
+}
+
+.menu-link:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.menu-link:hover .menu-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+
+.menu-item .menu-link.active {
+  background: #007bff;
+  color: #fff;
+}
+
+.menu-link .material-icons {
+  font-size: 1.5rem;
+  vertical-align: middle;
+}
+
+.menu-tooltip {
+  position: absolute;
+  left: 100%;
+  margin-left: 1rem;
+  background: #2c3e50;
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.menu-tooltip::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: #2c3e50;
+}
+
+/* Submenu Styles */
+.menu-item.has-submenu {
+  position: relative;
+}
+

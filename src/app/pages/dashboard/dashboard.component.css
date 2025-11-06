@@ -1,0 +1,85 @@
+.card {
+  margin-bottom: 1.5rem;
+  border: 1px solid #e9ecef;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.custom-card {
+  background: #fff;
+}
+
+.card-header {
+  padding: 1rem 1.5rem;
+  background: transparent;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.5rem;
+}
+
+.avatar-lg {
+  width: 4rem;
+  height: 4rem;
+}
+
+.bg-primary-transparent {
+  background: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+}
+
+.bg-success-transparent {
+  background: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+}
+
+.bg-info-transparent {
+  background: rgba(23, 162, 184, 0.1);
+  color: #17a2b8;
+}
+
+.bg-warning-transparent {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+}
+
+.avatar .material-icons {
+  font-size: 1.5rem;
+  vertical-align: middle;
+}
+
+.avatar-lg .material-icons {
+  font-size: 2rem;
+  vertical-align: middle;
+}
+
+.avatar-sm .material-icons {
+  font-size: 1rem;
+  vertical-align: middle;
+}
+
+.fs-22 {
+  font-size: 1.375rem !important;
+}
+
+.fs-22 .material-icons {
+  font-size: 1.375rem !important;
+  vertical-align: middle;
+}
+

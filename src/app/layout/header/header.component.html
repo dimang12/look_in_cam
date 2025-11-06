@@ -1,0 +1,56 @@
+<header class="app-header">
+  <div class="main-header-container">
+    <div class="header-content">
+      <div class="header-content-left">
+        <button class="btn btn-icon btn-sm btn-light" type="button" id="sidebar-toggle">
+          <i class="material-icons">menu</i>
+        </button>
+        <div class="header-search">
+          <button class="btn btn-icon btn-sm btn-light" type="button" data-bs-toggle="modal" data-bs-target="#header-responsive-search">
+            <i class="material-icons">search</i>
+          </button>
+        </div>
+      </div>
+      <div class="header-content-right">
+        <div class="dropdown">
+          <button class="btn btn-icon btn-sm btn-light" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="material-icons">notifications</i>
+            <span class="badge bg-danger rounded-pill">3</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><h6 class="dropdown-header">Notifications</h6></li>
+            <li><a class="dropdown-item" href="javascript:void(0);">New order received</a></li>
+            <li><a class="dropdown-item" href="javascript:void(0);">Payment received</a></li>
+            <li><a class="dropdown-item" href="javascript:void(0);">New customer registered</a></li>
+          </ul>
+        </div>
+        <div class="dropdown">
+          <button class="btn btn-icon btn-sm btn-light" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="material-icons">more_vert</i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="javascript:void(0);">Profile</a></li>
+            <li><a class="dropdown-item" href="javascript:void(0);">Settings</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="javascript:void(0);">Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Search Modal -->
+<div class="modal fade" id="header-responsive-search" tabindex="-1" aria-labelledby="header-responsive-search" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body">
+        <div class="input-group">
+          <input type="text" class="form-control border-end-0" placeholder="Search Anything ..." aria-label="Search Anything ...">
+          <button class="btn btn-primary" type="button"><i class="material-icons">search</i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
