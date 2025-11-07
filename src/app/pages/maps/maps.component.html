@@ -1,0 +1,46 @@
+<div class="map-page">
+  <div class="map-toolbar">
+    <h2>Maps</h2>
+  </div>
+
+  <nav class="maps-subtypes mb-2">
+    <button
+      *ngFor="let s of subtypes"
+      type="button"
+      class="btn btn-sm me-1"
+      [class.active]="s.key === selectedType"
+      (click)="selectType(s.key)">
+      {{ s.label }}
+    </button>
+  </nav>
+
+  <div class="map-container">
+    <ng-container *ngIf="hasApiKey && googleLoaded; else noKey">
+      <google-map
+        height="70vh"
+        width="100%"
+        [center]="center"
+        [zoom]="zoom"
+        [options]="options">
+
+        <map-marker
+          *ngFor="let m of markers"
+          [position]="m.position"
+          [title]="m.title"
+          (mapClick)="openInfo(marker, m)"
+          #marker="mapMarker">
+        </map-marker>
+
+        <map-info-window>{{ selectedMarkerTitle }}</map-info-window>
+      </google-map>
+    </ng-container>
+
+    <ng-template #noKey>
+      <div class="map-placeholder p-3 border">
+        <p>
+          Google Maps API key is not set. Please set <code>environment.googleMapsApiKey</code> to a valid key.
+        </p>
+      </div>
+    </ng-template>
+  </div>
+</div>
