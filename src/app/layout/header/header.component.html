@@ -1,13 +1,11 @@
-<header class="app-header">
-  <div class="main-header-container">
+<header class="app-header ">
+  <div class="main-header-container flex-row align-items-center justify-content-end">
     <div class="header-content">
       <div class="header-content-left">
-        <button class="btn btn-icon btn-sm btn-light" type="button" id="sidebar-toggle">
-          <i class="material-icons">menu</i>
-        </button>
         <div class="header-search">
-          <button class="btn btn-icon btn-sm btn-light" type="button" data-bs-toggle="modal" data-bs-target="#header-responsive-search">
-            <i class="material-icons">search</i>
+          <!-- html -->
+          <button class="btn btn-icon btn-sm btn-light" type="button" id="sidebar-toggle" (click)="toggleSidebarClick()">
+            <i class="material-icons">menu</i>
           </button>
         </div>
       </div>

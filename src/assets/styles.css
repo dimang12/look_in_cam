@@ -4,13 +4,13 @@
 [Master Stylesheet]
 
 Project                            :   VYZOR - HTML5 Bootstrap Admin Template
-Create Date                        :  
-Author & Copyright Ownership       :   Spruko Technologies Private Limited 
+Create Date                        :
+Author & Copyright Ownership       :   Spruko Technologies Private Limited
 Author URL                         :   https://themeforest.net/user/spruko
 Support	                           :   https://support.spruko.com/
 License Details                    :   https://spruko.com/licenses-details
 ------------------------------------------------------------------*/
-/* Table Of Content 
+/* Table Of Content
 switcher
 accordion
 alerts
@@ -751,19 +751,14 @@ typography
   --menu-bg: #202025;
 }
 [data-menu-styles=dark][data-theme-mode=light][data-bg-img=bgimg1] {
-  --menu-bg: url(./bg-img1.jpg);
 }
 [data-menu-styles=dark][data-theme-mode=light][data-bg-img=bgimg2] {
-  --menu-bg: url(./bg-img2.jpg);
 }
 [data-menu-styles=dark][data-theme-mode=light][data-bg-img=bgimg3] {
-  --menu-bg: url(./bg-img3.jpg);
 }
 [data-menu-styles=dark][data-theme-mode=light][data-bg-img=bgimg4] {
-  --menu-bg: url(./bg-img4.jpg);
 }
 [data-menu-styles=dark][data-theme-mode=light][data-bg-img=bgimg5] {
-  --menu-bg: url(./bg-img5.jpg);
 }
 @media (min-width: 992px) {
   [data-menu-styles=dark][data-nav-layout=horizontal] .main-menu-container .slide-left, [data-menu-styles=dark][data-nav-layout=horizontal] .main-menu-container .slide-right {
@@ -1704,36 +1699,6 @@ typography
   height: 100%;
   z-index: -1;
 }
-[data-bg-img=bgimg1] {
-  --menu-bg: url(./bg-img1.jpg);
-}
-[data-bg-img=bgimg1][data-menu-styles=transparent][data-theme-mode=dark] {
-  --menu-bg: url(./bg-img1.jpg);
-}
-[data-bg-img=bgimg2] {
-  --menu-bg: url(./bg-img2.jpg);
-}
-[data-bg-img=bgimg2][data-menu-styles=transparent][data-theme-mode=dark] {
-  --menu-bg: url(./bg-img2.jpg);
-}
-[data-bg-img=bgimg3] {
-  --menu-bg: url(./bg-img3.jpg);
-}
-[data-bg-img=bgimg3][data-menu-styles=transparent][data-theme-mode=dark] {
-  --menu-bg: url(./bg-img3.jpg);
-}
-[data-bg-img=bgimg4] {
-  --menu-bg: url(./bg-img4.jpg);
-}
-[data-bg-img=bgimg4][data-menu-styles=transparent][data-theme-mode=dark] {
-  --menu-bg: url(./bg-img4.jpg);
-}
-[data-bg-img=bgimg5] {
-  --menu-bg: url(./bg-img5.jpg);
-}
-[data-bg-img=bgimg5][data-menu-styles=transparent][data-theme-mode=dark] {
-  --menu-bg: url(./bg-img5.jpg);
-}
 [data-vertical-style=icontext][data-bg-img=bgimg1] .app-sidebar.sticky .main-sidebar-header, [data-vertical-style=icontext][data-bg-img=bgimg2] .app-sidebar.sticky .main-sidebar-header, [data-vertical-style=icontext][data-bg-img=bgimg3] .app-sidebar.sticky .main-sidebar-header, [data-vertical-style=icontext][data-bg-img=bgimg4] .app-sidebar.sticky .main-sidebar-header, [data-vertical-style=icontext][data-bg-img=bgimg5] .app-sidebar.sticky .main-sidebar-header {
   -webkit-backdrop-filter: blur(30px);
           backdrop-filter: blur(30px);
@@ -1818,7 +1783,6 @@ typography
   }
 }
 .theme-colors .switch-select .color-input.color-transparent {
-  background-image: url(./transparent.png) !important;
 }
 [data-theme-mode=dark][data-menu-styles=light] .app-sidebar .side-menu__icon {
   color: var(--menu-prime-color) !important;

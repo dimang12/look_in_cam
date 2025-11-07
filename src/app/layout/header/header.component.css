@@ -1,11 +1,10 @@
 .app-header {
   position: fixed;
   top: 0;
-  left: 70px;
+  left: 320px;
   right: 0;
   height: 70px;
   background: #fff;
-  box-shadow: 0 1px 15px rgba(0, 0, 0, 0.04);
   z-index: 1000;
   transition: left 0.3s ease;
 }

@@ -3,20 +3,16 @@
   <app-sidebar (menuSelected)="onMenuSelected($event)"></app-sidebar>
   <!-- End::app-sidebar -->
 
-  <!-- Start::app-header -->
-  <app-header [class.with-submenu]="selectedMenuItem && selectedMenuItem.children"></app-header>
-  <!-- End::app-header -->
-
   <!-- Start::submenu-navigation -->
-  <aside *ngIf="selectedMenuItem && selectedMenuItem.children" class="submenu-navigation">
+  <aside *ngIf="submenuVisible && selectedMenuItem && selectedMenuItem.children" class="submenu-navigation">
     <div class="submenu-header">
       <h2 class="submenu-title">{{ selectedMenuItem.label }}</h2>
     </div>
     <nav class="submenu-body">
       <ul class="submenu-list">
         <li *ngFor="let child of selectedMenuItem.children" class="submenu-item">
-          <a 
-            [routerLink]="child.route" 
+          <a
+            [routerLink]="child.route"
             routerLinkActive="active"
             class="submenu-link">
             <i class="material-icons">{{ child.icon }}</i>
@@ -30,6 +26,9 @@
 
   <!-- Start::app-content -->
   <div class="main-content app-content" [class.with-submenu]="selectedMenuItem && selectedMenuItem.children">
+    <!-- Start::app-header -->
+    <app-header [class.with-submenu]="selectedMenuItem && selectedMenuItem.children" (toggleSidebar)="onToggleSidebar()"></app-header>
+    <!-- End::app-header -->
     <div class="container-fluid">
       <router-outlet></router-outlet>
     </div>

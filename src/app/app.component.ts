@@ -9,11 +9,16 @@ declare var bootstrap: any;
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit, AfterViewInit {
-  title = 'Vyzor Angular Admin Dashboard';
+  title = 'Angular Admin Dashboard';
   selectedMenuItem: any = null;
+  submenuVisible: boolean = true;
 
   onMenuSelected(menuItem: any): void {
     this.selectedMenuItem = menuItem;
+  }
+
+  onToggleSidebar(): void {
+    this.submenuVisible = !this.submenuVisible;
   }
 
   ngOnInit(): void {
