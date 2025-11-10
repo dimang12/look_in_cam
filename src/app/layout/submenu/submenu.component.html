@@ -1,0 +1,15 @@
+<ng-container *ngIf="visible && menu && menu.children">
+  <div class="submenu-header">
+    <h2 class="submenu-title">{{ menu.label }}</h2>
+  </div>
+  <nav class="submenu-body">
+    <ul class="submenu-list">
+      <li *ngFor="let child of menu.children" class="submenu-item">
+        <a (click)="onItemClick(child)" class="submenu-link" [routerLink]="child.route" routerLinkActive="active">
+          <i class="material-icons">{{ child.icon }}</i>
+          <span class="submenu-label">{{ child.label }}</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+</ng-container>

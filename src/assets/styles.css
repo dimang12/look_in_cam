@@ -9638,7 +9638,7 @@ a,
 button {
   outline: 0 !important;
 }
-/* Start::basic */
+/* Start::basicUIs */
 .page {
   display: flex;
   flex-direction: column;
@@ -9664,7 +9664,7 @@ button {
     padding-block-start: 3.75rem;
   }
 }
-/* End::basic */
+/* End::basicUIs */
 /* Start::App Content */
 .bd-example > .dropdown-menu {
   position: static;
@@ -18259,7 +18259,7 @@ input.error {
   padding: 5px;
   font-weight: 600;
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   justify-content: center;
   box-shadow: 1px 1px 16px rgba(0, 0, 0, 0.2);
 }
@@ -20282,7 +20282,6 @@ ul.widgets-transactions-list li:last-child {
   width: 16rem;
   background: var(--menu-bg);
   border-inline-end: 1px solid var(--menu-border-color);
-  position: fixed;
   inset-block-start: 0;
   inset-inline-start: 0;
   z-index: 103;
@@ -20291,7 +20290,6 @@ ul.widgets-transactions-list li:last-child {
 .app-sidebar .main-sidebar-header {
   height: 4.25rem;
   width: 16rem;
-  position: fixed;
   display: flex;
   background: var(--menu-bg);
   z-index: 9;
@@ -24596,7 +24594,7 @@ ul.sub-tasks-list li:last-child {
   opacity: 0.9;
 }
 /* End::opacity */
-/* Start::basic sizes */
+/* Start::basicUIs sizes */
 .fs-sm {
   font-size: 0.6875rem;
 }
@@ -24606,7 +24604,7 @@ ul.sub-tasks-list li:last-child {
 .fs-lg {
   font-size: 1.125rem;
 }
-/* End::basic sizes */
+/* End::basicUIs sizes */
 orde .fs-1 {
   font-size: 0.0625rem;
 }

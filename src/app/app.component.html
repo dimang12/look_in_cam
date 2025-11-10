@@ -1,42 +1,31 @@
-<div class="page">
+<div class="flex flex-row">
   <!-- Start::app-sidebar -->
   <app-sidebar (menuSelected)="onMenuSelected($event)"></app-sidebar>
   <!-- End::app-sidebar -->
 
   <!-- Start::submenu-navigation -->
-  <aside *ngIf="submenuVisible && selectedMenuItem && selectedMenuItem.children" class="submenu-navigation">
-    <div class="submenu-header">
-      <h2 class="submenu-title">{{ selectedMenuItem.label }}</h2>
-    </div>
-    <nav class="submenu-body">
-      <ul class="submenu-list">
-        <li *ngFor="let child of selectedMenuItem.children" class="submenu-item">
-          <a
-            [routerLink]="child.route"
-            routerLinkActive="active"
-            class="submenu-link">
-            <i class="material-icons">{{ child.icon }}</i>
-            <span class="submenu-label">{{ child.label }}</span>
-          </a>
-        </li>
-      </ul>
-    </nav>
-  </aside>
+  <aside *ngIf="submenuVisible && selectedMenuItem && selectedMenuItem.children" app-submenu [visible]="submenuVisible" [menu]="selectedMenuItem" (itemClicked)="onMenuSelected($event)"></aside>
   <!-- End::submenu-navigation -->
 
   <!-- Start::app-content -->
-  <div class="main-content app-content" [class.with-submenu]="selectedMenuItem && selectedMenuItem.children">
+  <div class="flex-1 position-relative" [class.with-submenu]="selectedMenuItem && selectedMenuItem.children">
     <!-- Start::app-header -->
     <app-header [class.with-submenu]="selectedMenuItem && selectedMenuItem.children" (toggleSidebar)="onToggleSidebar()"></app-header>
     <!-- End::app-header -->
-    <div class="container-fluid">
+    <div class="w-100">
       <router-outlet></router-outlet>
+      <!-- Start::app-footer -->
+      <app-footer></app-footer>
+      <!-- End::app-footer -->
     </div>
+
+
   </div>
   <!-- End::app-content -->
 
-  <!-- Start::app-footer -->
-  <app-footer></app-footer>
-  <!-- End::app-footer -->
+
 </div>
 
+<!-- global UI components -->
+<app-toasts></app-toasts>
+<app-loading-overlay></app-loading-overlay>

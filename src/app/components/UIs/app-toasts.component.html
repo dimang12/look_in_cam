@@ -1,0 +1,9 @@
+<div class="app-toasts position-fixed bottom-0 end-0 p-3" style="z-index: 1050">
+  <div *ngFor="let t of toasts" class="toast mb-2 p-2 border rounded bg-light">
+    <div class="d-flex align-items-start">
+      <div class="flex-grow-1">{{ t.message }}</div>
+      <button class="btn btn-sm btn-link" (click)="dismiss(t.id)">✕</button>
+    </div>
+  </div>
+</div>
+

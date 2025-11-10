@@ -11,6 +11,22 @@ import { FooterComponent } from './layout/footer/footer.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { AppRoutingModule } from './app-routing.module';
 import { GoogleMapsModule } from '@angular/google-maps';
+import { AppToastsComponent } from './components/UIs/app-toasts.component';
+import { AppLoadingOverlayComponent } from './components/UIs/app-loading-overlay.component';
+import { ButtonComponent } from './components/UIs/basisUIs/button/button.component';
+import { MapsComponent } from './pages/maps/maps.component';
+import { SubmenuComponent } from './layout/submenu/submenu.component';
+
+// Firebase: use the modular SDK directly (avoid @angular/fire if its published versions mismatch)
+import { initializeApp } from 'firebase/app';
+import { environment } from '../environments/environment';
+
+// Initialize Firebase app (modular SDK)
+if (environment?.firebase && environment.firebase.projectId) {
+  initializeApp(environment.firebase);
+} else {
+  console.warn('Firebase not initialized: environment.firebase is not configured or missing.');
+}
 
 @NgModule({
   declarations: [
@@ -18,7 +34,13 @@ import { GoogleMapsModule } from '@angular/google-maps';
     HeaderComponent,
     SidebarComponent,
     FooterComponent,
-    DashboardComponent
+    DashboardComponent,
+    MapsComponent,
+    SubmenuComponent,
+    AppToastsComponent,
+    AppLoadingOverlayComponent,
+    ButtonComponent
+    // ButtonComponent is standalone; import it where needed in standalone components.
   ],
   imports: [
     BrowserModule,
@@ -26,13 +48,9 @@ import { GoogleMapsModule } from '@angular/google-maps';
     FormsModule,
     CommonModule,
     AppRoutingModule,
-    GoogleMapsModule
+    GoogleMapsModule,
   ],
   providers: [
-    // If you want to auto-load the Google Maps JS API at bootstrap, you can add a script tag
-    // to `index.html` that includes your API key, or use a provider pattern supported by
-    // your @angular/google-maps version. The direct `provideGoogleMaps` symbol isn't
-    // exported by v17 of @angular/google-maps, so we import the module instead.
   ],
   bootstrap: [AppComponent]
 })

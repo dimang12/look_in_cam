@@ -10,8 +10,36 @@
   border-bottom: 1px solid #eee;
 }
 
+.map-and-drawer {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: stretch;
+}
+
 .map-container {
   flex: 1 1 auto;
+  transition: margin-right 250ms ease;
+}
+
+/* Drawer */
+.report-drawer {
+  width: 0;
+  overflow: hidden;
+  background: #fff;
+  border-left: 1px solid #e6e6e6;
+  box-shadow: -2px 0 8px rgba(0,0,0,0.05);
+  transition: width 250ms ease;
+}
+
+.report-drawer.open {
+  width: 320px;
+  padding: 12px;
+}
+
+/* When drawer is open, make some breathing space if needed */
+.map-page.drawer-open .map-container {
+  margin-right: 0; /* grid handles layout, keep for future tweaks */
 }
 
 .map-placeholder {

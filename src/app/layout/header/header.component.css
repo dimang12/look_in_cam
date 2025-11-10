@@ -1,7 +1,6 @@
 .app-header {
-  position: fixed;
+  position: absolute;
   top: 0;
-  left: 320px;
   right: 0;
   height: 70px;
   background: #fff;
@@ -37,3 +36,8 @@
   vertical-align: middle;
 }
 
+/* Prevent header dropdowns from opening on hover; show only when Bootstrap toggles .show */
+.dropdown:hover > .dropdown-menu { display: none !important; }
+.dropdown .dropdown-menu { display: none !important; }
+.dropdown.show > .dropdown-menu,
+.dropdown .dropdown-menu.show { display: block !important; }

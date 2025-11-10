@@ -1,46 +1,123 @@
-<div class="map-page">
-  <div class="map-toolbar">
-    <h2>Maps</h2>
+<div class="p-4 mt-5" [class.drawer-open]="reportDrawerOpen">
+  <div class="map-toolbar flex flex-row align-items-center mb-3">
+    <h2 class="flex-1">Maps</h2>
+    <section>
+      <!-- Add button to add report -->
+      <ui-button type="primary" size="sm" accent="purple" htmlType="button" (clicked)="addReportMarker()">
+        <span class="d-flex align-items-center gap-1"><i class="material-icons">add_location</i> Add Report</span>
+      </ui-button>
+    </section>
   </div>
 
   <nav class="maps-subtypes mb-2">
-    <button
-      *ngFor="let s of subtypes"
-      type="button"
-      class="btn btn-sm me-1"
-      [class.active]="s.key === selectedType"
-      (click)="selectType(s.key)">
-      {{ s.label }}
-    </button>
+    <ng-container *ngFor="let s of subtypes">
+      <ui-button type="ghost" size="sm" htmlType="button" (clicked)="selectType(s.key)" [ariaLabel]="s.label" class="me-1" [fullWidth]="false">
+        {{ s.label }}
+      </ui-button>
+    </ng-container>
   </nav>
 
-  <div class="map-container">
-    <ng-container *ngIf="hasApiKey && googleLoaded; else noKey">
-      <google-map
-        height="70vh"
-        width="100%"
-        [center]="center"
-        [zoom]="zoom"
-        [options]="options">
+  <div class="map-and-drawer">
+    <div class="map-container">
+      <ng-container *ngIf="hasApiKey && googleLoaded; else noKey">
+        <google-map
+          height="70vh"
+          width="100%"
+          [center]="center"
+          [zoom]="zoom"
+          [options]="options"
+          (mapClick)="onMapClick($event)">
 
-        <map-marker
-          *ngFor="let m of markers"
-          [position]="m.position"
-          [title]="m.title"
-          (mapClick)="openInfo(marker, m)"
-          #marker="mapMarker">
-        </map-marker>
+          <map-marker
+            *ngFor="let m of markers"
+            [position]="m.position"
+            [title]="m.title"
+            (mapClick)="openInfo(marker, m)"
+            #marker="mapMarker">
+          </map-marker>
 
-        <map-info-window>{{ selectedMarkerTitle }}</map-info-window>
-      </google-map>
-    </ng-container>
+          <map-info-window>
+            <div>
+              <div class="fw-bold">{{ selectedMarkerTitle }}</div>
+              <div class="text-muted small" *ngIf="selectedMarkerType">{{ getTypeLabel(selectedMarkerType) }}</div>
+            </div>
+          </map-info-window>
+        </google-map>
+      </ng-container>
 
-    <ng-template #noKey>
-      <div class="map-placeholder p-3 border">
-        <p>
-          Google Maps API key is not set. Please set <code>environment.googleMapsApiKey</code> to a valid key.
-        </p>
-      </div>
-    </ng-template>
+      <ng-template #noKey>
+        <div class="map-placeholder p-3 border">
+          <p>
+            Google Maps API key is not set. Please set <code>environment.googleMapsApiKey</code> to a valid key.
+          </p>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Right drawer -->
+    <aside class="report-drawer" [class.open]="reportDrawerOpen" aria-label="Report drawer">
+      <header class="d-flex align-items-center justify-content-between mb-2">
+        <h3 class="m-0">Add Report</h3>
+        <ui-button type="ghost" size="sm" htmlType="button" (clicked)="closeReportDrawer()" [ariaLabel]="'Close drawer'">✕</ui-button>
+      </header>
+      <form (ngSubmit)="saveReport()" *ngIf="reportDrawerOpen">
+        <div class="mb-2">
+          <label class="form-label">Title</label>
+          <input class="form-control form-control-sm" [(ngModel)]="report.title" name="title" placeholder="Marker title" />
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Type</label>
+          <select class="form-select form-select-sm" [(ngModel)]="report.type" name="type">
+            <option *ngFor="let s of subtypes" [value]="s.key">{{ s.label }}</option>
+          </select>
+        </div>
+
+        <!-- Crime-specific fields -->
+        <ng-container *ngIf="report.type === 'crime'">
+          <div class="mb-2">
+            <label class="form-label">Description</label>
+            <textarea class="form-control form-control-sm" [(ngModel)]="report.description" name="description" rows="2" placeholder="Details about the incident"></textarea>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Crime Type</label>
+            <input class="form-control form-control-sm" [(ngModel)]="report.crimeType" name="crimeType" placeholder="e.g. Theft, Assault" />
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Address</label>
+            <input class="form-control form-control-sm" [(ngModel)]="report.address" name="address" placeholder="Optional address or landmark" />
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Attachments (image URLs)</label>
+            <div *ngFor="let a of report.attachments; let i = index" class="d-flex gap-2 mb-1">
+              <input class="form-control form-control-sm" [(ngModel)]="report.attachments[i]" name="attachment{{i}}" placeholder="https://..." />
+              <ui-button type="danger" size="sm" htmlType="button" (clicked)="report.attachments.splice(i,1)">Remove</ui-button>
+            </div>
+            <div class="mt-1">
+              <ui-button type="secondary" size="sm" htmlType="button" (clicked)="report.attachments.push('')">Add attachment URL</ui-button>
+            </div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Reported By (name)</label>
+            <input class="form-control form-control-sm" [(ngModel)]="report.reportedBy.name" name="reportedByName" placeholder="Reporter name" />
+          </div>
+        </ng-container>
+
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <label class="form-label">Latitude</label>
+            <input class="form-control form-control-sm" type="number" step="any" [(ngModel)]="report.lat" name="lat" />
+          </div>
+          <div class="col-6">
+            <label class="form-label">Longitude</label>
+            <input class="form-control form-control-sm" type="number" step="any" [(ngModel)]="report.lng" name="lng" />
+          </div>
+        </div>
+        <p class="text-muted small">Tip: click on the map to fill latitude/longitude automatically.</p>
+        <div class="d-flex justify-content-end gap-2 mt-3">
+          <ui-button type="secondary" size="sm" htmlType="button" (clicked)="closeReportDrawer()">Cancel</ui-button>
+          <ui-button type="primary" size="sm" htmlType="submit" [disabled]="report.lat == null || report.lng == null">Save</ui-button>
+        </div>
+      </form>
+    </aside>
   </div>
 </div>
