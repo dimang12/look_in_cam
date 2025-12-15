@@ -1,6 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
 
 /* Large vendor CSS moved to index.html to avoid bundling them in Angular's styles */
 /* @import './assets/styles.css'; */
@@ -19,13 +20,25 @@
 @tailwind utilities;
 
 /* Global styles */
-* {
-  box-sizing: border-box;
-}
+*, ::before, ::after {
+    box-sizing: border-box;
+    border-width: 0;
+    border-style: none;
+    border-color: #e5e7eb;
+} 
 
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove borders from Material form fields */
+.mat-mdc-form-field-outline {
+  display: none !important;
+}
+
+.mat-mdc-form-field-focus-overlay {
+  display: none !important;
 }

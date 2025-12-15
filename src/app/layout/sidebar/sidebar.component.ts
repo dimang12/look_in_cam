@@ -1,13 +1,6 @@
 import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { Router } from '@angular/router';
-
-interface MenuItem {
-  label: string;
-  icon: string;
-  route?: string;
-  defaultSelected?: string;
-  children?: MenuItem[];
-}
+import { MENU_ITEMS, MenuItem } from './menu-items';
 
 @Component({
   selector: 'app-sidebar',
@@ -20,53 +13,7 @@ export class SidebarComponent implements OnInit {
   selectedMenuItem: MenuItem | null = null;
   @Output() menuSelected = new EventEmitter<MenuItem | null>();
 
-  menuItems: MenuItem[] = [
-    { label: 'Dashboard', icon: 'home', route: '/dashboard' },
-    { label: 'Maps', icon: 'map', route: '/maps', defaultSelected: '/maps/tourist',
-      children: [
-        { label: 'Tourist Map', icon: 'place', route: '/maps/tourist' },
-        { label: 'Hotel Map', icon: 'hotel', route: '/maps/hotel' },
-        { label: 'Weather Map', icon: 'wb_sunny', route: '/maps/weather' },
-        { label: 'Traffic Map', icon: 'traffic', route: '/maps/traffic' }
-      ]},
-    {
-      label: 'Products',
-      icon: 'inventory_2',
-      children: [
-        { label: 'All Products', icon: 'list', route: '/products' },
-        { label: 'Add Product', icon: 'add', route: '/products/add' },
-        { label: 'Categories', icon: 'category', route: '/products/categories' }
-      ]
-    },
-    {
-      label: 'Orders',
-      icon: 'shopping_cart',
-      children: [
-        { label: 'All Orders', icon: 'list', route: '/orders' },
-        { label: 'Pending Orders', icon: 'schedule', route: '/orders/pending' },
-        { label: 'Completed Orders', icon: 'check_circle', route: '/orders/completed' }
-      ]
-    },
-    { label: 'Customers', icon: 'people', route: '/customers' },
-    {
-      label: 'Analytics',
-      icon: 'bar_chart',
-      children: [
-        { label: 'Sales Report', icon: 'trending_up', route: '/analytics/sales' },
-        { label: 'Customer Report', icon: 'people', route: '/analytics/customers' },
-        { label: 'Revenue Report', icon: 'attach_money', route: '/analytics/revenue' }
-      ]
-    },
-    {
-      label: 'Settings',
-      icon: 'settings',
-      children: [
-        { label: 'General', icon: 'tune', route: '/settings/general' },
-        { label: 'Users', icon: 'person', route: '/settings/users' },
-        { label: 'Permissions', icon: 'lock', route: '/settings/permissions' }
-      ]
-    }
-  ];
+  menuItems: MenuItem[] = MENU_ITEMS;
 
   constructor(private router: Router) { }
 
@@ -149,5 +96,4 @@ export class SidebarComponent implements OnInit {
     return this.selectedMenuItem;
   }
 }
-
 

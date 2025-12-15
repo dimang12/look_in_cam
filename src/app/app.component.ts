@@ -14,7 +14,17 @@ export class AppComponent implements OnInit, AfterViewInit {
   submenuVisible: boolean = true;
 
   onMenuSelected(menuItem: any): void {
-    this.selectedMenuItem = menuItem;
+    // Only update the selected menu when a parent (with children) is chosen
+    // or when the sidebar explicitly clears the selection.
+    if (menuItem && menuItem.children?.length) {
+      this.selectedMenuItem = menuItem;
+    } else if (menuItem === null) {
+      this.selectedMenuItem = null;
+    }
+  }
+
+  onSubmenuItemClicked(_: any): void {
+    // No state change needed; keep current parent selection so submenu stays visible.
   }
 
   onToggleSidebar(): void {
@@ -38,4 +48,3 @@ export class AppComponent implements OnInit, AfterViewInit {
     });
   }
 }
-

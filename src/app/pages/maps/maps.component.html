@@ -1,7 +1,25 @@
-<div class="p-4" [class.drawer-open]="reportDrawerOpen">
-  <div class="map-toolbar flex flex-row align-items-center mb-3">
-    <h2 class="flex-1">Maps</h2>
-    <section>
+<div class="px-4 flex flex-col h-full" [class.drawer-open]="reportDrawerOpen">
+  <div class="map-toolbar flex flex-row align-items-center p-2 mb-3">
+    <h2 class="flex-1 flex items-center">Maps</h2>
+    <section class="flex gap-2 items-center">
+      <!-- Drawing controls - only visible when report drawer is open -->
+      <div class="flex items-center gap-2" *ngIf="reportDrawerOpen">
+        <label class="text-sm text-gray-700">Draw:</label>
+        <select class="px-2 py-1 border rounded" [value]="selectedDrawMode" (change)="setDrawMode($any($event.target).value)">
+          <option value="marker">Marker</option>
+          <option value="circle">Circle</option>
+          <option value="polygon">Polygon</option>
+          <option value="polyline">Polyline</option>
+          <option value="rectangle">Rectangle</option>
+        </select>
+        <ui-button type="ghost" size="sm" htmlType="button" (clicked)="toggleDrawing()">
+          <span class="flex flex-row items-center p-1">
+            <i class="material-icons">edit</i>
+            {{ drawingEnabled ? 'Stop Drawing' : 'Start Drawing' }}
+          </span>
+        </ui-button>
+      </div>
+      
       <!-- Add button to add report -->
       <ui-button type="primary" size="sm" accent="purple" htmlType="button" (clicked)="addReportMarker()">
         <span class="flex flex-row items-center p-1"><i class="material-icons">add_location</i> Add Report</span>
@@ -9,41 +27,90 @@
     </section>
   </div>
 
-  <nav class="maps-subtypes mb-2">
-    <ng-container *ngFor="let s of subtypes">
-      <ui-button type="ghost" size="sm" htmlType="button" (clicked)="selectType(s.key)" [ariaLabel]="s.label" class="me-1" [fullWidth]="false">
-        {{ s.label }}
-      </ui-button>
-    </ng-container>
+  <nav class="maps-subtypes flex flex-row justify-between mb-2">
+    <div class="">
+      <ng-container *ngFor="let s of subtypes">
+        <ui-button type="ghost" size="sm" htmlType="button" (clicked)="selectType(s.key)" [ariaLabel]="s.label" class="me-1" [fullWidth]="false">
+          {{ s.label }}
+        </ui-button>
+      </ng-container>
+    </div>
+  
+    <!-- Data button -->
+    <ui-button type="ghost" size="sm" htmlType="button" (clicked)="toggleDataPanel()" aria-label="Data">
+      <span class="flex flex-row items-center gap-1 p-1">
+        <i class="material-icons">grid_view</i>
+        <span>ទិន្នន័យ</span>
+      </span>
+    </ui-button>
   </nav>
 
-  <div class="map-and-drawer">
-    <div class="map-container">
-      <ng-container *ngIf="hasApiKey && googleLoaded; else noKey">
+  <div class="map-and-drawer grid flex-1 pb-4 gap-4" [class.drawer-open]="reportDrawerOpen">
+    <!-- Data Panel -->
+    <aside *ngIf="dataPanelOpen" class="data-panel h-full flex flex-col bg-white rounded-lg shadow border border-gray-200" aria-label="Data panel">
+      <div class="panel-header flex justify-between items-center px-4 py-3 border-b border-gray-200">
+        <h3 class="panel-title m-0 text-base font-semibold text-gray-900">Markers List</h3>
+        <button mat-icon-button type="button" (click)="toggleDataPanel()" aria-label="Close panel" class="p-0">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="panel-content flex-1 overflow-y-auto">
+        <div *ngIf="markers.length === 0" class="empty-state p-6 text-center text-gray-500">No markers</div>
+        <ul class="divide-y divide-gray-200">
+          <li *ngFor="let m of markers; let i = index" class="marker-item px-4 py-3 hover:bg-gray-50 transition">
+            <div class="flex justify-between items-start">
+              <div class="flex-1 cursor-pointer" (click)="zoomToMarker(m)">
+                <div class="marker-title font-semibold text-gray-900 text-sm">{{ m.title }}</div>
+                <div class="marker-type text-gray-600 text-xs mt-1" *ngIf="m.type">{{ getTypeLabel(m.type) }}</div>
+                <div class="marker-coords text-gray-500 text-xs mt-1 font-mono">
+                  {{ m.position.lat.toFixed(4) }}, {{ m.position.lng.toFixed(4) }}
+                </div>
+                <div class="marker-description text-gray-600 text-xs mt-2" *ngIf="m.description">{{ m.description }}</div>
+              </div>
+              <div class="flex gap-1 ms-2">
+                <button mat-icon-button type="button" aria-label="Edit" (click)="editMarker(m, i)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" type="button" aria-label="Delete" (click)="deleteMarker(i, m)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </aside>
+
+    <div class="map-container h-full ">
+      <ng-container class="h-full flex p-3" *ngIf="hasApiKey && googleLoaded; else noKey">
+        <!-- Using circles instead of deprecated markers -->
         <google-map
-          height="70vh"
+          height="100%"
           width="100%"
           [center]="center"
           [zoom]="zoom"
           [options]="options"
-          (mapClick)="onMapClick($event)">
+          (mapClick)="onMapClick($event)"
+          (mapInitialized)="onMapInitialized($event)">
 
-          <map-marker
+          <map-circle
             *ngFor="let m of markers"
-            [position]="m.position"
-            [title]="m.title"
-            (mapClick)="openInfo(marker, m)"
-            #marker="mapMarker">
-          </map-marker>
+            [center]="m.position"
+            [radius]="getCircleRadius()"
+            [options]="getCircleOptions(m)"
+            (circleClick)="openInfoForCircle(m)">
+          </map-circle>
 
           <map-info-window>
             <div>
               <div class="fw-bold">{{ selectedMarkerTitle }}</div>
               <div class="text-muted small" *ngIf="selectedMarkerType">{{ getTypeLabel(selectedMarkerType) }}</div>
+              <div class="text-muted small" *ngIf="selectedMarkerDescription">{{ selectedMarkerDescription }}</div>
             </div>
           </map-info-window>
         </google-map>
       </ng-container>
+
 
       <ng-template #noKey>
         <div class="map-placeholder p-3 border">
@@ -55,69 +122,108 @@
     </div>
 
     <!-- Right drawer -->
-    <aside class="report-drawer" [class.open]="reportDrawerOpen" aria-label="Report drawer">
-      <header class="d-flex align-items-center justify-content-between mb-2">
-        <h3 class="m-0">Add Report</h3>
-        <ui-button type="ghost" size="sm" htmlType="button" (clicked)="closeReportDrawer()" [ariaLabel]="'Close drawer'">✕</ui-button>
-      </header>
-      <form (ngSubmit)="saveReport()" *ngIf="reportDrawerOpen">
-        <div class="mb-2">
-          <label class="form-label">Title</label>
-          <input class="form-control form-control-sm" [(ngModel)]="report.title" name="title" placeholder="Marker title" />
-        </div>
-        <div class="mb-2">
-          <label class="form-label">Type</label>
-          <select class="form-select form-select-sm" [(ngModel)]="report.type" name="type">
-            <option *ngFor="let s of subtypes" [value]="s.key">{{ s.label }}</option>
-          </select>
+    <aside *ngIf="reportDrawerOpen" class="report-drawer" aria-label="Report drawer">
+      <div class="drawer-content">
+        <div class="drawer-header">
+          <h3 class="drawer-title">Add Report</h3>
+          <button mat-icon-button type="button" (click)="closeReportDrawer()" aria-label="Close drawer" class="close-btn">
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
 
-        <!-- Crime-specific fields -->
-        <ng-container *ngIf="report.type === 'crime'">
-          <div class="mb-2">
-            <label class="form-label">Description</label>
-            <textarea class="form-control form-control-sm" [(ngModel)]="report.description" name="description" rows="2" placeholder="Details about the incident"></textarea>
-          </div>
-          <div class="mb-2">
-            <label class="form-label">Crime Type</label>
-            <input class="form-control form-control-sm" [(ngModel)]="report.crimeType" name="crimeType" placeholder="e.g. Theft, Assault" />
-          </div>
-          <div class="mb-2">
-            <label class="form-label">Address</label>
-            <input class="form-control form-control-sm" [(ngModel)]="report.address" name="address" placeholder="Optional address or landmark" />
-          </div>
-          <div class="mb-2">
-            <label class="form-label">Attachments (image URLs)</label>
-            <div *ngFor="let a of report.attachments; let i = index" class="d-flex gap-2 mb-1">
-              <input class="form-control form-control-sm" [(ngModel)]="report.attachments[i]" name="attachment{{i}}" placeholder="https://..." />
-              <ui-button type="danger" size="sm" htmlType="button" (clicked)="report.attachments.splice(i,1)">Remove</ui-button>
-            </div>
-            <div class="mt-1">
-              <ui-button type="secondary" size="sm" htmlType="button" (clicked)="report.attachments.push('')">Add attachment URL</ui-button>
-            </div>
-          </div>
-          <div class="mb-2">
-            <label class="form-label">Reported By (name)</label>
-            <input class="form-control form-control-sm" [(ngModel)]="report.reportedBy.name" name="reportedByName" placeholder="Reporter name" />
-          </div>
-        </ng-container>
+        <form class="report-form" (ngSubmit)="saveReport()" *ngIf="reportDrawerOpen">
+          <!-- Title Field -->
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Title</mat-label>
+            <input matInput [(ngModel)]="report.title" name="title" placeholder="Marker title" />
+          </mat-form-field>
 
-        <div class="row g-2 mb-2">
-          <div class="col-6">
-            <label class="form-label">Latitude</label>
-            <input class="form-control form-control-sm" type="number" step="any" [(ngModel)]="report.lat" name="lat" />
+          <!-- Type Field -->
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Type</mat-label>
+            <mat-select [(ngModel)]="report.type" name="type">
+              <mat-option *ngFor="let s of subtypes" [value]="s.key">{{ s.label }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Marker Image URL -->
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Marker Image URL (optional)</mat-label>
+            <input matInput [(ngModel)]="report.imageUrl" name="imageUrl" placeholder="https://example.com/image.jpg" />
+            <mat-hint>Add a custom image for this marker (circular photo)</mat-hint>
+          </mat-form-field>
+
+          <!-- Crime-specific fields -->
+          <ng-container *ngIf="report.type && ['border','crime'].includes(report.type)">
+            <!-- Description -->
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Description</mat-label>
+              <textarea matInput [(ngModel)]="report.description" name="description" rows="3" placeholder="Details about the incident"></textarea>
+            </mat-form-field>
+
+            <!-- Crime Type -->
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Crime Type</mat-label>
+              <input matInput [(ngModel)]="report.crimeType" name="crimeType" placeholder="e.g. Theft, Assault" />
+            </mat-form-field>
+
+            <!-- Address -->
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Address</mat-label>
+              <input matInput [(ngModel)]="report.address" name="address" placeholder="Optional address or landmark" />
+            </mat-form-field>
+
+            <!-- Attachments -->
+            <div class="attachment-group">
+              <label class="attachment-label">Attachments (upload image or paste URL)</label>
+
+              <div class="attachment-actions">
+                <input type="file" accept="image/*" #attachmentInput (change)="onAttachmentFileSelected($event)" hidden />
+                <button mat-stroked-button color="primary" type="button" (click)="attachmentInput.click()" [disabled]="uploadingAttachment">
+                  <mat-icon>cloud_upload</mat-icon>
+                  {{ uploadingAttachment ? 'Uploading…' : 'Upload image' }}
+                </button>
+                <div class="text-danger small" *ngIf="uploadError">{{ uploadError }}</div>
+              </div>
+
+              <div *ngFor="let a of report.attachments; let i = index" class="attachment-item">
+                <mat-form-field appearance="outline" class="flex-1">
+                  <mat-label>Attachment {{ i + 1 }}</mat-label>
+                  <input matInput [(ngModel)]="report.attachments[i]" name="attachment{{i}}" placeholder="https://..." />
+                </mat-form-field>
+                <button mat-icon-button color="warn" type="button" (click)="report.attachments.splice(i,1)" aria-label="Remove attachment">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+              <button mat-stroked-button color="primary" type="button" (click)="report.attachments.push('')" class="add-attachment-btn">
+                <mat-icon>add</mat-icon>
+                Add attachment URL
+              </button>
+            </div>
+
+            <!-- Reported By -->
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Reported By (name)</mat-label>
+              <input matInput [(ngModel)]="report.reportedBy.name" name="reportedByName" placeholder="Reporter name" />
+            </mat-form-field>
+          </ng-container>
+
+          <!-- Location (point or polygon) -->
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Location</mat-label>
+            <textarea matInput [(ngModel)]="report.locationText" name="locationText" rows="2" placeholder="Point: 11.5564,104.9282  •  Polygon: 11.56,104.92; 11.57,104.93; 11.58,104.94"></textarea>
+          </mat-form-field>
+
+          <!-- Hint -->
+          <mat-hint class="hint-text">Tip: click on the map to fill point automatically, or finish a drawing to populate polygon/rectangle.</mat-hint>
+
+          <!-- Action Buttons -->
+          <div class="form-actions">
+            <button mat-stroked-button color="primary" type="button" (click)="closeReportDrawer()">Cancel</button>
+            <button mat-flat-button color="primary" type="submit">Save</button>
           </div>
-          <div class="col-6">
-            <label class="form-label">Longitude</label>
-            <input class="form-control form-control-sm" type="number" step="any" [(ngModel)]="report.lng" name="lng" />
-          </div>
-        </div>
-        <p class="text-muted small">Tip: click on the map to fill latitude/longitude automatically.</p>
-        <div class="d-flex justify-content-end gap-2 mt-3">
-          <ui-button type="secondary" size="sm" htmlType="button" (clicked)="closeReportDrawer()">Cancel</ui-button>
-          <ui-button type="primary" size="sm" htmlType="submit" [disabled]="report.lat == null || report.lng == null">Save</ui-button>
-        </div>
-      </form>
+        </form>
+      </div>
     </aside>
   </div>
 </div>
