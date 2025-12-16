@@ -10,15 +10,6 @@
   border-bottom: 1px solid #eee;
 }
 
-.search-container input {
-  font-size: 14px;
-  transition: all 0.2s ease;
-}
-
-.search-container input:focus {
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-}
-
 .map-and-drawer {
   position: relative;
   display: grid;
@@ -181,6 +172,38 @@ mat-form-field.w-100 {
   margin-right: 8px;
 }
 
+/* Calendar Controls */
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.calendar-controls .mat-mdc-form-field {
+  font-size: 14px;
+  min-width: 140px;
+}
+
+.calendar-controls ::ng-deep .mat-mdc-text-field-wrapper {
+  padding-bottom: 0;
+}
+
+.calendar-controls ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+.date-range-selector {
+  min-width: 140px;
+}
+
+.today-btn {
+  font-size: 13px;
+  padding: 0 16px;
+  height: 36px;
+  line-height: 36px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .map-and-drawer {
@@ -199,6 +222,10 @@ mat-form-field.w-100 {
 
   .coordinates-row {
     grid-template-columns: 1fr;
+  }
+  
+  .calendar-controls {
+    flex-wrap: wrap;
   }
 }
 

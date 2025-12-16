@@ -41,16 +41,17 @@ export class FirebaseService {
   constructor() {}
 
   // Add a marker document to `markers` collection
-  async addMarker(marker: MarkerItem): Promise<void> {
+  async addMarker(marker: MarkerItem): Promise<string> {
     const db = getFirestore();
     const markersRef = collection(db, 'markers');
-    await addDoc(markersRef, {
+    const docRef = await addDoc(markersRef, {
       title: marker.title,
       type: marker.type || null,
       position: marker.position,
       imageUrl: marker.imageUrl || null,
       createdAt: new Date()
     });
+    return docRef.id;
   }
 
   // Fetch markers (simple one-time load)

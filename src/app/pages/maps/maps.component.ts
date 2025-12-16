@@ -44,10 +44,13 @@ export class MapsComponent extends UIComponentBase implements OnInit {
     disableDefaultUI: false,
   };
 
-  // include type in the marker model
-  markers: Array<{ position: google.maps.LatLngLiteral; title: string; type?: string; description?: string; imageUrl?: string; customIcon?: google.maps.Icon; id?: string }> = [
-    { position: { lat: 11.5564, lng: 104.9282 }, title: 'Default marker', type: 'tourism', description: 'A sample marker location' }
+  // include type in the marker model with createdAt for filtering
+  allMarkers: Array<{ position: google.maps.LatLngLiteral; title: string; type?: string; description?: string; imageUrl?: string; customIcon?: google.maps.Icon; id?: string; createdAt?: Date }> = [
+    { position: { lat: 11.5564, lng: 104.9282 }, title: 'Default marker', type: 'tourism', description: 'A sample marker location', createdAt: new Date() }
   ];
+  
+  // Filtered markers based on date range
+  markers: Array<{ position: google.maps.LatLngLiteral; title: string; type?: string; description?: string; imageUrl?: string; customIcon?: google.maps.Icon; id?: string; createdAt?: Date }> = [];
 
   selectedMarkerTitle: string | null = null;
   selectedMarkerType: string | null = null;
@@ -59,6 +62,12 @@ export class MapsComponent extends UIComponentBase implements OnInit {
 
   // Data panel state
   dataPanelOpen = false;
+
+  // Calendar state
+  dateRangeMode: 'today' | 'week' | 'month' = 'week';
+  selectedDate: Date = new Date();
+  startDate: Date = new Date();
+  endDate: Date = new Date();
 
   // Drawer/report state
   reportDrawerOpen = false;
@@ -98,6 +107,7 @@ export class MapsComponent extends UIComponentBase implements OnInit {
   private customOverlays: google.maps.OverlayView[] = [];
 
   async ngOnInit(): Promise<void> {
+    this.updateDateRange();
     // ensure the Google Maps JS API is loaded before rendering the map
     if (this.hasApiKey) {
       try {
@@ -129,12 +139,17 @@ export class MapsComponent extends UIComponentBase implements OnInit {
     if (environment?.firebase && environment.firebase.projectId) {
       try {
         const items = await this.firebaseService.listMarkers();
-        const loaded = items.map(i => ({ position: { lat: i.position.lat, lng: i.position.lng }, title: i.title, type: i.type, imageUrl: i.imageUrl, id: i.id }));
-        this.markers = [...this.markers, ...loaded];
-        // After loading markers, create image overlays if map is ready
-        if (this.map?.googleMap) {
-          this.createImageOverlays(this.map.googleMap);
-        }
+        const loaded = items.map(i => ({ 
+          position: { lat: i.position.lat, lng: i.position.lng }, 
+          title: i.title, 
+          type: i.type, 
+          imageUrl: i.imageUrl, 
+          id: i.id,
+          createdAt: i.createdAt ? (i.createdAt instanceof Date ? i.createdAt : new Date(i.createdAt.seconds * 1000)) : new Date()
+        }));
+        this.allMarkers = [...this.allMarkers, ...loaded];
+        // Filter and display markers based on current date range
+        this.filterMarkersByDateRange();
         // Icons will be loaded lazily via getMarkerIcon() when rendered
       } catch (e) {
         console.warn('Failed to load markers from Firestore', e);
@@ -143,7 +158,7 @@ export class MapsComponent extends UIComponentBase implements OnInit {
       try {
         const reports: CrimeReport[] = await this.firebaseService.listCrimeReports();
         if (reports && reports.length) {
-          const crimeMarkers: Array<{ position: google.maps.LatLngLiteral; title: string; type: string; reportId?: string; imageUrl?: string }> = [];
+          const crimeMarkers: Array<{ position: google.maps.LatLngLiteral; title: string; type: string; reportId?: string; imageUrl?: string; createdAt?: Date }> = [];
           for (const r of reports) {
             const loc = this.extractLatLngFromLocation(r.location);
             if (!loc) {
@@ -151,13 +166,19 @@ export class MapsComponent extends UIComponentBase implements OnInit {
               continue;
             }
             const img = Array.isArray(r.attachments) && r.attachments.length ? r.attachments[0] : undefined;
-            crimeMarkers.push({ position: { lat: loc.lat, lng: loc.lng }, title: r.title || r.crimeType || 'Crime reported', type: 'crime', reportId: r.id, imageUrl: img });
+            const createdAt = r.timestamp ? new Date(r.timestamp) : new Date();
+            crimeMarkers.push({ 
+              position: { lat: loc.lat, lng: loc.lng }, 
+              title: r.title || r.crimeType || 'Crime reported', 
+              type: 'crime', 
+              reportId: r.id, 
+              imageUrl: img,
+              createdAt
+            });
           }
-          if (crimeMarkers.length) this.markers = [...this.markers, ...crimeMarkers];
-          // After loading crime markers, create image overlays if map is ready
-          if (this.map?.googleMap) {
-            this.createImageOverlays(this.map.googleMap);
-          }
+          if (crimeMarkers.length) this.allMarkers = [...this.allMarkers, ...crimeMarkers];
+          // Filter and display markers based on current date range
+          this.filterMarkersByDateRange();
           // Icons will be loaded lazily via getMarkerIcon() when rendered
         }
       } catch (e) {
@@ -534,12 +555,18 @@ export class MapsComponent extends UIComponentBase implements OnInit {
     const loc = this.parseLocation();
     if (!loc) return;
     const point = loc.point;
-    const newMarker = point ? { position: { lat: point.lat, lng: point.lng }, title, type, imageUrl } : null;
+    const createdAt = new Date();
+    const newMarker = point ? { position: { lat: point.lat, lng: point.lng }, title, type, imageUrl, createdAt } : null;
     if (newMarker) {
       const isEdit = (this as any)._editIndex != null;
       if (isEdit) {
         const idx = (this as any)._editIndex as number;
         const id = (this as any)._editId as string | undefined;
+        // Update in both arrays
+        const allIdx = this.allMarkers.findIndex(m => m.id === id);
+        if (allIdx !== -1) {
+          this.allMarkers[allIdx] = { ...this.allMarkers[allIdx], ...newMarker };
+        }
         this.markers[idx] = { ...this.markers[idx], ...newMarker };
         // Persist update
         if (environment?.firebase && environment.firebase.projectId && id) {
@@ -551,10 +578,33 @@ export class MapsComponent extends UIComponentBase implements OnInit {
         (this as any)._editIndex = null;
         (this as any)._editId = null;
       } else {
-        this.markers = [
-          ...this.markers,
+        // Add marker to allMarkers array
+        const markerIndex = this.allMarkers.length;
+        this.allMarkers = [
+          ...this.allMarkers,
           newMarker
         ];
+        
+        // Filter to show in markers if within date range
+        this.filterMarkersByDateRange();
+        
+        // Save to Firestore and get the ID
+        if (environment?.firebase && environment.firebase.projectId && point) {
+          this.firebaseService.addMarker({ title, type, position: { lat: point.lat, lng: point.lng }, imageUrl })
+            .then(id => {
+              // Update the marker with its Firestore ID in allMarkers
+              this.allMarkers[markerIndex] = { ...this.allMarkers[markerIndex], id };
+              // Update in markers if it's visible
+              const visibleIdx = this.markers.findIndex(m => m.position.lat === newMarker.position.lat && m.position.lng === newMarker.position.lng && m.title === title);
+              if (visibleIdx !== -1) {
+                this.markers[visibleIdx] = { ...this.markers[visibleIdx], id };
+              }
+              console.log('Marker saved with ID:', id);
+            })
+            .catch(err => {
+              console.warn('Failed to save marker to Firestore', err);
+            });
+        }
       }
       // Refresh image overlays
       if (this.map?.googleMap) {
@@ -588,12 +638,8 @@ export class MapsComponent extends UIComponentBase implements OnInit {
           console.warn('Failed to save crime report to Firestore', err);
         });
       } else {
-        // generic marker or polygon/polyline/rectangle stored as shapes
-        if (point) {
-          this.firebaseService.addMarker({ title, type, position: { lat: point.lat, lng: point.lng }, imageUrl }).catch(err => {
-            console.warn('Failed to save marker to Firestore', err);
-          });
-        } else if (loc.polygon) {
+        // For shapes (polygons, polylines, rectangles)
+        if (loc.polygon) {
           this.firebaseService.addShape({ type: 'polygon', path: loc.polygon }).catch(() => {});
         } else if (loc.polyline) {
           this.firebaseService.addShape({ type: 'polyline', path: loc.polyline }).catch(() => {});
@@ -689,15 +735,35 @@ export class MapsComponent extends UIComponentBase implements OnInit {
 
   // Delete a marker locally and in Firestore if available
   async deleteMarker(index: number, m: { id?: string }): Promise<void> {
+    console.log('Deleting marker:', { index, marker: m, hasId: !!m.id });
+    
+    // Remove from visible markers array
     const removed = this.markers.splice(index, 1);
-    this.showToast('Marker deleted', 'success', 2000);
-    if (environment?.firebase && environment.firebase.projectId && m.id) {
-      try {
-        await this.firebaseService.deleteMarker(m.id);
-      } catch (err) {
-        console.warn('Failed to delete marker in Firestore', err);
+    
+    // Also remove from allMarkers array
+    if (m.id) {
+      const allIdx = this.allMarkers.findIndex(marker => marker.id === m.id);
+      if (allIdx !== -1) {
+        this.allMarkers.splice(allIdx, 1);
       }
     }
+    
+    // Delete from Firestore if it has an ID
+    if (m.id) {
+      try {
+        console.log('Attempting to delete from Firestore with ID:', m.id);
+        await this.firebaseService.deleteMarker(m.id);
+        console.log('Successfully deleted from Firestore');
+        this.showToast('Marker deleted', 'success', 2000);
+      } catch (err) {
+        console.error('Failed to delete marker from Firestore:', err);
+        this.showToast('Failed to delete from database', 'error', 3000);
+      }
+    } else {
+      console.warn('Marker has no ID, skipping Firestore deletion');
+      this.showToast('Marker removed locally', 'success', 2000);
+    }
+    
     // Refresh image overlays to remove the deleted marker's overlay
     if (this.map?.googleMap) {
       this.createImageOverlays(this.map.googleMap);
@@ -709,6 +775,129 @@ export class MapsComponent extends UIComponentBase implements OnInit {
     if (!key) return null;
     const found = this.subtypes.find(s => s.key === key);
     return found ? found.label : key;
+  }
+
+  // Calendar methods
+  setDateRangeMode(mode: 'today' | 'week' | 'month'): void {
+    this.dateRangeMode = mode;
+    this.updateDateRange();
+  }
+
+  goToPreviousPeriod(): void {
+    const current = new Date(this.selectedDate);
+    if (this.dateRangeMode === 'today') {
+      current.setDate(current.getDate() - 1);
+    } else if (this.dateRangeMode === 'week') {
+      current.setDate(current.getDate() - 7);
+    } else if (this.dateRangeMode === 'month') {
+      current.setMonth(current.getMonth() - 1);
+    }
+    this.selectedDate = current;
+    this.updateDateRange();
+  }
+
+  goToNextPeriod(): void {
+    const current = new Date(this.selectedDate);
+    if (this.dateRangeMode === 'today') {
+      current.setDate(current.getDate() + 1);
+    } else if (this.dateRangeMode === 'week') {
+      current.setDate(current.getDate() + 7);
+    } else if (this.dateRangeMode === 'month') {
+      current.setMonth(current.getMonth() + 1);
+    }
+    this.selectedDate = current;
+    this.updateDateRange();
+  }
+
+  goToToday(): void {
+    this.selectedDate = new Date();
+    this.updateDateRange();
+  }
+
+  onDateChange(event: any): void {
+    const newDate = event.value;
+    if (newDate) {
+      this.selectedDate = newDate;
+      this.updateDateRange();
+    }
+  }
+
+  private updateDateRange(): void {
+    const date = new Date(this.selectedDate);
+    
+    if (this.dateRangeMode === 'today') {
+      this.startDate = new Date(date.setHours(0, 0, 0, 0));
+      this.endDate = new Date(date.setHours(23, 59, 59, 999));
+    } else if (this.dateRangeMode === 'week') {
+      // Get start of week (Sunday)
+      const dayOfWeek = date.getDay();
+      const startOfWeek = new Date(date);
+      startOfWeek.setDate(date.getDate() - dayOfWeek);
+      startOfWeek.setHours(0, 0, 0, 0);
+      
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+      
+      this.startDate = startOfWeek;
+      this.endDate = endOfWeek;
+    } else if (this.dateRangeMode === 'month') {
+      const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      
+      const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+      endOfMonth.setHours(23, 59, 59, 999);
+      
+      this.startDate = startOfMonth;
+      this.endDate = endOfMonth;
+    }
+    
+    console.log('Date range updated:', {
+      mode: this.dateRangeMode,
+      start: this.startDate,
+      end: this.endDate
+    });
+    
+    // Filter markers by date range
+    this.filterMarkersByDateRange();
+  }
+
+  private filterMarkersByDateRange(): void {
+    this.markers = this.allMarkers.filter(marker => {
+      if (!marker.createdAt) {
+        // Include markers without createdAt (legacy data)
+        return true;
+      }
+      
+      const markerDate = marker.createdAt instanceof Date ? marker.createdAt : new Date(marker.createdAt);
+      const isInRange = markerDate >= this.startDate && markerDate <= this.endDate;
+      
+      return isInRange;
+    });
+    
+    console.log(`Filtered markers: ${this.markers.length} of ${this.allMarkers.length} in date range`);
+    
+    // Refresh image overlays with filtered markers
+    if (this.map?.googleMap) {
+      this.createImageOverlays(this.map.googleMap);
+    }
+    
+    // Fit markers in view
+    this.fitMarkersInView();
+  }
+
+  getDateRangeLabel(): string {
+    const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+    
+    if (this.dateRangeMode === 'today') {
+      return this.startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } else if (this.dateRangeMode === 'week') {
+      const startStr = this.startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const endStr = this.endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      return `${startStr} - ${endStr}`;
+    } else {
+      return this.startDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    }
   }
 
   // Get circle radius based on zoom level (in meters)

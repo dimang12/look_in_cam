@@ -27,7 +27,9 @@
     </section>
   </div>
 
-  <nav class="maps-subtypes flex flex-row justify-between mb-2">
+
+
+  <nav class="maps-subtypes flex flex-row justify-between items-center mb-2">
     <div class="">
       <ng-container *ngFor="let s of subtypes">
         <ui-button type="ghost" size="sm" htmlType="button" (clicked)="selectType(s.key)" [ariaLabel]="s.label" class="me-1" [fullWidth]="false">
@@ -37,12 +39,48 @@
     </div>
   
     <!-- Data button -->
-    <ui-button type="ghost" size="sm" htmlType="button" (clicked)="toggleDataPanel()" aria-label="Data">
-      <span class="flex flex-row items-center gap-1 p-1">
-        <i class="material-icons">grid_view</i>
-        <span>ទិន្នន័យ</span>
-      </span>
-    </ui-button>
+    <div class="flex items-center gap-2">
+      <!-- Mini Calendar with Material Datepicker -->
+      <div class="calendar-controls flex items-center gap-2 mb-3 p-1 bg-white rounded-lg shadow-sm border border-gray-200">
+        <!-- Previous button -->
+        <button mat-icon-button (click)="goToPreviousPeriod()" aria-label="Previous">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        
+        <!-- Date range display with dropdown -->
+        <div class="flex-1 flex items-center justify-center gap-2">
+          <mat-form-field appearance="outline" class="date-range-selector">
+            <mat-select [(value)]="dateRangeMode" (selectionChange)="setDateRangeMode($event.value)">
+              <mat-option value="today">Today</mat-option>
+              <mat-option value="week">Week</mat-option>
+              <mat-option value="month">Month</mat-option>
+            </mat-select>
+          </mat-form-field>
+          
+          <div class="text-sm font-medium text-gray-700 min-w-max">{{ getDateRangeLabel() }}</div>
+          
+          <!-- Calendar button with datepicker -->
+          <div class="relative inline-block">
+            <button mat-icon-button (click)="picker.open()" aria-label="Select date">
+              <mat-icon>calendar_today</mat-icon>
+            </button>
+            <input matInput [matDatepicker]="picker" [(ngModel)]="selectedDate" (dateChange)="onDateChange($event)" style="position: absolute; left: 0; top: 0; width: 40px; height: 40px; opacity: 0; pointer-events: none;">
+            <mat-datepicker #picker></mat-datepicker>
+          </div>
+        </div>
+        
+        <!-- Next button -->
+        <button mat-icon-button (click)="goToNextPeriod()" aria-label="Next">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+      <ui-button type="ghost" size="sm" htmlType="button" (clicked)="toggleDataPanel()" aria-label="Data">
+        <span class="flex flex-row items-center gap-1 p-1">
+          <i class="material-icons">grid_view</i>
+          <span>ទិន្នន័យ</span>
+        </span>
+      </ui-button>
+    </div>
   </nav>
 
   <div class="map-and-drawer grid flex-1 pb-4 gap-4" [class.drawer-open]="reportDrawerOpen">
