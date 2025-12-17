@@ -21,27 +21,27 @@
       </div>
       
       <!-- Add button to add report -->
-      <ui-button type="primary" size="sm" accent="purple" htmlType="button" (clicked)="addReportMarker()">
-        <span class="flex flex-row items-center p-1"><i class="material-icons">add_location</i> Add Report</span>
+      <ui-button extraClasses="rounded-pill" type="primary" size="sm" accent="purple" htmlType="button" (clicked)="addReportMarker()">
+        <span class="flex flex-row items-center p-1"><i class="material-icons mr-2">add_location</i> បញ្ចូលរបាយការណ៍</span>
       </ui-button>
     </section>
   </div>
 
 
 
-  <nav class="maps-subtypes flex flex-row justify-between items-center mb-2">
-    <div class="">
-      <ng-container *ngFor="let s of subtypes">
-        <ui-button type="ghost" size="sm" htmlType="button" (clicked)="selectType(s.key)" [ariaLabel]="s.label" class="me-1" [fullWidth]="false">
-          {{ s.label }}
-        </ui-button>
-      </ng-container>
+  <nav class="maps-subtypes flex flex-row justify-between items-center mb-2 gap-4">
+    <div class="flex-1">
+      <app-map-type-tabs 
+        [subtypes]="subtypes" 
+        [selectedType]="selectedType || ''"
+        (typeSelected)="selectType($event)">
+      </app-map-type-tabs>
     </div>
   
     <!-- Data button -->
     <div class="flex items-center gap-2">
       <!-- Mini Calendar with Material Datepicker -->
-      <div class="calendar-controls flex items-center gap-2 mb-3 p-1 bg-white rounded-lg shadow-sm border border-gray-200">
+      <div class="calendar-controls flex items-center gap-2 py-1 bg-gray-50 rounded-lg shadow-sm border-solid border border-gray-200 h-14">
         <!-- Previous button -->
         <button mat-icon-button (click)="goToPreviousPeriod()" aria-label="Previous">
           <mat-icon>chevron_left</mat-icon>
@@ -50,7 +50,7 @@
         <!-- Date range display with dropdown -->
         <div class="flex-1 flex items-center justify-center gap-2">
           <mat-form-field appearance="outline" class="date-range-selector">
-            <mat-select [(value)]="dateRangeMode" (selectionChange)="setDateRangeMode($event.value)">
+            <mat-select  [(value)]="dateRangeMode" (selectionChange)="setDateRangeMode($event.value)">
               <mat-option value="today">Today</mat-option>
               <mat-option value="week">Week</mat-option>
               <mat-option value="month">Month</mat-option>
@@ -74,52 +74,57 @@
           <mat-icon>chevron_right</mat-icon>
         </button>
       </div>
-      <ui-button type="ghost" size="sm" htmlType="button" (clicked)="toggleDataPanel()" aria-label="Data">
-        <span class="flex flex-row items-center gap-1 p-1">
-          <i class="material-icons">grid_view</i>
-          <span>ទិន្នន័យ</span>
-        </span>
-      </ui-button>
+      <div class="flex items-center pl-2 ml-2 h-14 rounded">
+        <ui-button type="ghost" size="sm" htmlType="button" (clicked)="toggleDataPanel()" aria-label="Data">
+          <span class="flex flex-row items-center gap-1 p-1">
+            <i class="material-icons text-sm">grid_view</i>
+            <span class="text-md">បង្ហាញទិន្នន័យ</span>
+          </span>
+        </ui-button>
+      </div>
     </div>
   </nav>
 
   <div class="map-and-drawer grid flex-1 pb-4 gap-4" [class.drawer-open]="reportDrawerOpen">
-    <!-- Data Panel -->
-    <aside *ngIf="dataPanelOpen" class="data-panel h-full flex flex-col bg-white rounded-lg shadow border border-gray-200" aria-label="Data panel">
-      <div class="panel-header flex justify-between items-center px-4 py-3 border-b border-gray-200">
-        <h3 class="panel-title m-0 text-base font-semibold text-gray-900">Markers List</h3>
-        <button mat-icon-button type="button" (click)="toggleDataPanel()" aria-label="Close panel" class="p-0">
-          <mat-icon>close</mat-icon>
-        </button>
-      </div>
-      <div class="panel-content flex-1 overflow-y-auto">
-        <div *ngIf="markers.length === 0" class="empty-state p-6 text-center text-gray-500">No markers</div>
-        <ul class="divide-y divide-gray-200">
-          <li *ngFor="let m of markers; let i = index" class="marker-item px-4 py-3 hover:bg-gray-50 transition">
-            <div class="flex justify-between items-start">
-              <div class="flex-1 cursor-pointer" (click)="zoomToMarker(m)">
-                <div class="marker-title font-semibold text-gray-900 text-sm">{{ m.title }}</div>
-                <div class="marker-type text-gray-600 text-xs mt-1" *ngIf="m.type">{{ getTypeLabel(m.type) }}</div>
-                <div class="marker-coords text-gray-500 text-xs mt-1 font-mono">
-                  {{ m.position.lat.toFixed(4) }}, {{ m.position.lng.toFixed(4) }}
+    <!-- Map Container with overlay backdrop -->
+    <div class="map-container-wrapper relative h-full">
+      
+      <!-- Data Panel - Floating -->
+      <aside *ngIf="dataPanelOpen" class="data-panel bg-transparent" aria-label="Data panel">
+        <div class="panel-header flex justify-between items-center px-4 py-3 border-b border-gray-200">
+          <h3 class="panel-title m-0 text-base font-semibold text-gray-900">ទិន្នន័យ</h3>
+          <button mat-icon-button type="button" (click)="toggleDataPanel()" aria-label="Close panel" class="p-0">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <div class="panel-content flex-1 overflow-y-auto">
+          <div *ngIf="markers.length === 0" class="empty-state p-6 text-center text-gray-500">No markers</div>
+          <ul class="divide-y divide-gray-200">
+            <li *ngFor="let m of markers; let i = index" class="marker-item px-4 py-3 hover:bg-gray-50 transition">
+              <div class="flex justify-between items-start">
+                <div class="flex-1 cursor-pointer" (click)="zoomToMarker(m)">
+                  <div class="marker-title font-semibold text-gray-900 text-sm">{{ m.title }}</div>
+                  <div class="marker-type text-gray-600 text-xs mt-1" *ngIf="m.type">{{ getTypeLabel(m.type) }}</div>
+                  <div class="marker-coords text-gray-500 text-xs mt-1 font-mono">
+                    {{ m.position.lat.toFixed(4) }}, {{ m.position.lng.toFixed(4) }}
+                  </div>
+                  <div class="marker-description text-gray-600 text-xs mt-2" *ngIf="m.description">{{ m.description }}</div>
                 </div>
-                <div class="marker-description text-gray-600 text-xs mt-2" *ngIf="m.description">{{ m.description }}</div>
+                <div class="flex gap-1 ms-2">
+                  <button mat-icon-button type="button" aria-label="Edit" (click)="editMarker(m, i)">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button color="warn" type="button" aria-label="Delete" (click)="deleteMarker(i, m)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
               </div>
-              <div class="flex gap-1 ms-2">
-                <button mat-icon-button type="button" aria-label="Edit" (click)="editMarker(m, i)">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button color="warn" type="button" aria-label="Delete" (click)="deleteMarker(i, m)">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </div>
-            </div>
-          </li>
-        </ul>
-      </div>
-    </aside>
+            </li>
+          </ul>
+        </div>
+      </aside>
 
-    <div class="map-container h-full ">
+    <div class="map-container h-full">
       <ng-container class="h-full flex p-3" *ngIf="hasApiKey && googleLoaded; else noKey">
         <!-- Using circles instead of deprecated markers -->
         <google-map
@@ -157,6 +162,7 @@
           </p>
         </div>
       </ng-template>
+    </div>
     </div>
 
     <!-- Right drawer -->

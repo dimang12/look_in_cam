@@ -23,13 +23,12 @@ export class MapsComponent extends UIComponentBase implements OnInit {
   selectedDrawMode: 'marker' | 'circle' | 'polygon' | 'polyline' | 'rectangle' = 'marker';
   private drawingManager: google.maps.drawing.DrawingManager | undefined;
   private currentDrawnOverlay: google.maps.MVCObject | null = null;
-  // Icon cache and loading management
-  private iconCache = new Map<string, google.maps.Icon>();
-  private iconLoadingQueue = new Set<string>();
-  private maxConcurrentIconLoads = 3;
+
 
   subtypes = [
-    { key: 'border', label: 'ព្រំដែន' }
+    { key: 'border', label: 'ព្រំដែន' },
+    { key: 'bomb', label: 'ទំលាក់គ្រាប់បែក' },
+    { key: 'refugee', label: 'ជំរុំភៀសខ្លួន' },
   ];
 
   selectedType: string | null = null;
@@ -43,6 +42,9 @@ export class MapsComponent extends UIComponentBase implements OnInit {
     mapTypeId: 'roadmap',
     disableDefaultUI: false,
   };
+
+  // MapLibre heatmap toggle (template-safe even if heatmap UI is disabled)
+  heatmapEnabled = false;
 
   // include type in the marker model with createdAt for filtering
   allMarkers: Array<{ position: google.maps.LatLngLiteral; title: string; type?: string; description?: string; imageUrl?: string; customIcon?: google.maps.Icon; id?: string; createdAt?: Date }> = [
@@ -133,6 +135,8 @@ export class MapsComponent extends UIComponentBase implements OnInit {
         this.selectedType = this.subtypes[0].key;
         this.router.navigate(['/maps', this.selectedType], { replaceUrl: true });
       }
+      // Filter markers when type changes
+      this.filterMarkers();
     });
 
     // If Firebase is configured, load persisted markers and crime reports
@@ -148,8 +152,8 @@ export class MapsComponent extends UIComponentBase implements OnInit {
           createdAt: i.createdAt ? (i.createdAt instanceof Date ? i.createdAt : new Date(i.createdAt.seconds * 1000)) : new Date()
         }));
         this.allMarkers = [...this.allMarkers, ...loaded];
-        // Filter and display markers based on current date range
-        this.filterMarkersByDateRange();
+        // Filter and display markers based on current date range and type
+        this.filterMarkers();
         // Icons will be loaded lazily via getMarkerIcon() when rendered
       } catch (e) {
         console.warn('Failed to load markers from Firestore', e);
@@ -177,8 +181,8 @@ export class MapsComponent extends UIComponentBase implements OnInit {
             });
           }
           if (crimeMarkers.length) this.allMarkers = [...this.allMarkers, ...crimeMarkers];
-          // Filter and display markers based on current date range
-          this.filterMarkersByDateRange();
+          // Filter and display markers based on current date range and type
+          this.filterMarkers();
           // Icons will be loaded lazily via getMarkerIcon() when rendered
         }
       } catch (e) {
@@ -447,6 +451,10 @@ export class MapsComponent extends UIComponentBase implements OnInit {
     this.dataPanelOpen = !this.dataPanelOpen;
   }
 
+  toggleHeatmap(): void {
+    this.heatmapEnabled = !this.heatmapEnabled;
+  }
+
   zoomToMarker(m: { position: google.maps.LatLngLiteral; title: string; type?: string; description?: string }): void {
     if (!this.map || !this.map.googleMap) return;
     this.map.googleMap.panTo(m.position);
@@ -585,8 +593,8 @@ export class MapsComponent extends UIComponentBase implements OnInit {
           newMarker
         ];
         
-        // Filter to show in markers if within date range
-        this.filterMarkersByDateRange();
+        // Filter to show in markers if within date range and type
+        this.filterMarkers();
         
         // Save to Firestore and get the ID
         if (environment?.firebase && environment.firebase.projectId && point) {
@@ -858,24 +866,29 @@ export class MapsComponent extends UIComponentBase implements OnInit {
       end: this.endDate
     });
     
-    // Filter markers by date range
-    this.filterMarkersByDateRange();
+    // Filter markers by date range and type
+    this.filterMarkers();
   }
 
-  private filterMarkersByDateRange(): void {
+  private filterMarkers(): void {
     this.markers = this.allMarkers.filter(marker => {
-      if (!marker.createdAt) {
-        // Include markers without createdAt (legacy data)
-        return true;
+      // Filter by date range
+      if (marker.createdAt) {
+        const markerDate = marker.createdAt instanceof Date ? marker.createdAt : new Date(marker.createdAt);
+        const isInDateRange = markerDate >= this.startDate && markerDate <= this.endDate;
+        if (!isInDateRange) return false;
       }
       
-      const markerDate = marker.createdAt instanceof Date ? marker.createdAt : new Date(marker.createdAt);
-      const isInRange = markerDate >= this.startDate && markerDate <= this.endDate;
+      // Filter by selected type
+      if (this.selectedType) {
+        const isMatchingType = marker.type === this.selectedType;
+        if (!isMatchingType) return false;
+      }
       
-      return isInRange;
+      return true;
     });
     
-    console.log(`Filtered markers: ${this.markers.length} of ${this.allMarkers.length} in date range`);
+    console.log(`Filtered markers: ${this.markers.length} of ${this.allMarkers.length} (type: ${this.selectedType}, date range: ${this.dateRangeMode})`);
     
     // Refresh image overlays with filtered markers
     if (this.map?.googleMap) {

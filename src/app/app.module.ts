@@ -16,7 +16,10 @@ import { AppToastsComponent } from './components/UIs/app-toasts.component';
 import { AppLoadingOverlayComponent } from './components/UIs/app-loading-overlay.component';
 import { ButtonComponent } from './components/UIs/basisUIs/button/button.component';
 import { MapsComponent } from './pages/maps/maps.component';
+import { MapTypeTabsComponent } from './pages/maps/components/map-type/map-type-tabs.component';
 import { SubmenuComponent } from './layout/submenu/submenu.component';
+
+
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -24,6 +27,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatListModule } from '@angular/material/list';
+import { MatTabsModule } from '@angular/material/tabs';
 
 // Firebase: use the modular SDK directly (avoid @angular/fire if its published versions mismatch)
 import { initializeApp } from 'firebase/app';
@@ -47,7 +52,8 @@ if (environment?.firebase && environment.firebase.projectId) {
     SubmenuComponent,
     AppToastsComponent,
     AppLoadingOverlayComponent,
-    ButtonComponent
+    ButtonComponent,
+    MapTypeTabsComponent,
     // ButtonComponent is standalone; import it where needed in standalone components.
   ],
   imports: [
@@ -65,6 +71,8 @@ if (environment?.firebase && environment.firebase.projectId) {
     MatIconModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatListModule,
+    MatTabsModule,
   ],
   providers: [
   ],

@@ -18,7 +18,7 @@
 }
 
 .map-and-drawer:has(.data-panel) {
-  grid-template-columns: minmax(280px, 0.25fr) minmax(0, 1fr);
+  grid-template-columns: 1fr;
 }
 
 .map-and-drawer:not(:has(.data-panel)) {
@@ -30,7 +30,7 @@
 }
 
 .map-and-drawer:has(.data-panel):has(.report-drawer) {
-  grid-template-columns: minmax(280px, 0.25fr) minmax(0, 1.5fr) minmax(320px, 1fr);
+  grid-template-columns: 1fr minmax(320px, 1fr);
 }
 
 /* Drawer */
@@ -83,6 +83,30 @@
   flex: 1 1 auto;
   overflow-y: auto;
   padding-bottom: 8px;
+}
+
+/* Transparent scrollbar for report form */
+.report-form::-webkit-scrollbar {
+  width: 6px;
+}
+
+.report-form::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.report-form::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.report-form::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* Firefox transparent scrollbar for report form */
+.report-form {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
 
 /* Form Fields */
@@ -174,15 +198,12 @@ mat-form-field.w-100 {
 
 /* Calendar Controls */
 .calendar-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  /* Only essential layout styles, let Tailwind handle appearance */
 }
 
 .calendar-controls .mat-mdc-form-field {
-  font-size: 14px;
-  min-width: 140px;
+  font-size: 12px;
+  min-width: 100px;
 }
 
 .calendar-controls ::ng-deep .mat-mdc-text-field-wrapper {
@@ -193,8 +214,53 @@ mat-form-field.w-100 {
   display: none;
 }
 
-.date-range-selector {
-  min-width: 140px;
+/* Custom Material border styling */
+.calendar-controls ::ng-deep .mdc-notched-outline__leading,
+.calendar-controls ::ng-deep .mdc-notched-outline__trailing,
+.calendar-controls ::ng-deep .mdc-notched-outline__notch {
+  border-color: #d1d5db !important;
+  border-width: 1px !important;
+}
+
+.calendar-controls ::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__leading,
+.calendar-controls ::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__trailing,
+.calendar-controls ::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__notch {
+  border-color: #9ca3af !important;
+}
+
+.calendar-controls ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+.calendar-controls ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing,
+.calendar-controls ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch {
+  border-color: #3b82f6 !important;
+  border-width: 2px !important;
+}
+
+/* Properly aligned small select */
+.calendar-controls ::ng-deep .mat-mdc-select-trigger {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+.calendar-controls ::ng-deep .mat-mdc-select-value {
+  font-size: 12px;
+  line-height: 1.3;
+  flex: 1;
+}
+
+.calendar-controls ::ng-deep .mat-mdc-select-arrow-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.calendar-controls ::ng-deep .mat-mdc-form-field-infix {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  min-height: 32px;
 }
 
 .today-btn {
@@ -229,3 +295,129 @@ mat-form-field.w-100 {
   }
 }
 
+/* Map container wrapper for floating elements */
+.map-container-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Blur overlay when data panel is open */
+.map-blur-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 50;
+  pointer-events: none;
+  border-radius: 8px;
+}
+
+/* Data Panel - Floating over map */
+.data-panel {
+  position: absolute !important;
+  background-color: rgba(255, 255, 255, 0.30);
+  top: 60px;
+  left: 12px;
+  width: 320px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex !important;
+  flex-direction: column;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  height: calc(100% - 80px);
+}
+
+.panel-header {
+  flex-shrink: 0;
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #212121;
+}
+
+.panel-content {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* Transparent scrollbar for panel */
+.panel-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.panel-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.panel-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.panel-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* Firefox transparent scrollbar */
+.panel-content {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* Marker item styling */
+.marker-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  transition: background-color 0.2s ease;
+}
+
+.marker-item:hover {
+  background-color: rgba(225, 225, 255, 0.5);
+}
+
+.marker-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #212121;
+  margin-bottom: 4px;
+}
+
+.marker-type {
+  font-size: 12px;
+  color: #666;
+}
+
+.marker-coords {
+  font-size: 11px;
+  color: #999;
+  font-family: monospace;
+  margin-top: 4px;
+}
+
+.marker-description {
+  font-size: 12px;
+  color: #555;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+.empty-state {
+  color: #999;
+  font-size: 14px;
+  padding: 24px;
+  text-align: center;
+}
