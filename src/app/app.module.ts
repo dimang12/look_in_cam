@@ -18,6 +18,8 @@ import { ButtonComponent } from './components/UIs/basisUIs/button/button.compone
 import { MapsComponent } from './pages/maps/maps.component';
 import { MapTypeTabsComponent } from './pages/maps/components/map-type/map-type-tabs.component';
 import { SubmenuComponent } from './layout/submenu/submenu.component';
+import { PoliticsComponent } from './pages/politics/politics.component';
+import { CalendarControlsComponent } from './components/calendar-controls/calendar-controls.component';
 
 
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -54,6 +56,8 @@ if (environment?.firebase && environment.firebase.projectId) {
     AppLoadingOverlayComponent,
     ButtonComponent,
     MapTypeTabsComponent,
+    PoliticsComponent,
+    CalendarControlsComponent,
     // ButtonComponent is standalone; import it where needed in standalone components.
   ],
   imports: [

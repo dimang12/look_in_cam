@@ -1,0 +1,34 @@
+<div class="calendar-controls flex items-center gap-2 py-1 bg-gray-50 rounded-lg shadow-sm border-solid border border-gray-200 h-14">
+  <!-- Previous button -->
+  <button mat-icon-button (click)="goToPreviousPeriod()" aria-label="Previous">
+    <mat-icon>chevron_left</mat-icon>
+  </button>
+  
+  <!-- Date range display with dropdown -->
+  <div class="flex-1 flex items-center justify-center gap-2">
+    <div class="flex items-center gap-2 w-32">
+        <mat-form-field appearance="outline" class="date-range-selector h-8">
+            <mat-select [value]="dateRangeMode" (selectionChange)="setDateRangeMode($event.value)">
+                <mat-option value="today">Today</mat-option>
+                <mat-option value="week">Week</mat-option>
+                <mat-option value="month">Month</mat-option>
+            </mat-select>
+        </mat-form-field>
+    </div>
+    <div class="text-sm font-medium text-gray-700 min-w-max">{{ dateRangeLabel }}</div>
+    
+    <!-- Calendar button with datepicker -->
+    <div class="relative inline-block">
+      <button mat-icon-button (click)="picker.open()" aria-label="Select date">
+        <mat-icon>calendar_today</mat-icon>
+      </button>
+      <input matInput [matDatepicker]="picker" [value]="selectedDate" (dateChange)="onDateChange($event)" style="position: absolute; left: 0; top: 0; width: 40px; height: 40px; opacity: 0; pointer-events: none;">
+      <mat-datepicker #picker></mat-datepicker>
+    </div>
+  </div>
+  
+  <!-- Next button -->
+  <button mat-icon-button (click)="goToNextPeriod()" aria-label="Next">
+    <mat-icon>chevron_right</mat-icon>
+  </button>
+</div>

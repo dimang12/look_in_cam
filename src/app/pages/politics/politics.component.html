@@ -1,0 +1,169 @@
+<div class="politics-container h-full w-full flex flex-col bg-gray-50">
+  <!-- Header -->
+  <div class="overflow-hidden rounded-lg bg-white shadow-sm mb-4 mx-4 mt-4">
+    <div class="px-4 py-5 sm:p-6">
+      <h1 class="text-2xl font-bold text-gray-900 flex items-center">
+        <mat-icon class="mr-3 text-blue-600">gavel</mat-icon>
+        សារព័ត៌មាននយោបាយ
+      </h1>
+      <p class="text-gray-600 mt-1">Latest political news and updates</p>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="flex-1 flex flex-row gap-4">
+    
+    <!-- Left Section - News List -->
+    <div class="w-1/3 flex flex-col p-4">
+      
+      <!-- Search and Filters Card -->
+      <div class="overflow-hidden rounded-lg bg-white shadow-sm mb-4">
+        <div class="px-4 py-5 sm:p-6">
+          <!-- Search Box -->
+          <div class="mb-4">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>សួរសំនួរ</mat-label>
+              <input matInput 
+                    [(ngModel)]="searchQuery" 
+                    (input)="onSearchChange()"
+                    placeholder="Enter keywords...">
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <!-- Calendar Controls -->
+          <app-calendar-controls
+            [dateRangeMode]="dateRangeMode"
+            [selectedDate]="selectedDate"
+            [dateRangeLabel]="getDateRangeLabel()"
+            (dateRangeModeChange)="setDateRangeMode($event)"
+            (selectedDateChange)="onCalendarDateChange($event)"
+            (previousPeriod)="goToPreviousPeriod()"
+            (nextPeriod)="goToNextPeriod()">
+          </app-calendar-controls>
+        </div>
+        <!-- News List Card -->
+        <div class="overflow-hidden rounded-lg bg-white shadow-sm flex-1 flex flex-col">
+          <div class="px-4 py-5 sm:p-6 flex-1 flex flex-col">
+            <div class="flex-1 overflow-y-auto">
+              <mat-list>
+                <mat-list-item 
+                  *ngFor="let news of filteredNewsItems; let i = index"
+                  (click)="selectNewsItem(news)"
+                  class="cursor-pointer hover:bg-gray-50 rounded-lg mb-2 border !h-auto !min-h-0"
+                  [class.bg-blue-50]="selectedNewsItem?.id === news.id">
+                  
+                  <div class="w-full py-3">
+                    <!-- News Title -->
+                    <h3 class="font-semibold text-gray-900 line-clamp-2 mb-2">
+                      {{ news.title }}
+                    </h3>
+                    
+                    <!-- News Summary -->
+                    <p class="text-sm text-gray-600 line-clamp-2 mb-2">
+                      {{ news.summary }}
+                    </p>
+                    
+                    <!-- Meta Information -->
+                    <div class="flex items-center justify-between text-xs text-gray-500">
+                      <span class="flex items-center">
+                        <mat-icon class="!text-sm mr-1">schedule</mat-icon>
+                        {{ formatDate(news.publishedDate) }}
+                      </span>
+                      <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                        {{ news.category }}
+                      </span>
+                    </div>
+                    
+                    <!-- Source -->
+                    <div class="text-xs text-gray-400 mt-1">
+                      Source: {{ news.source }}
+                    </div>
+                  </div>
+                  
+                </mat-list-item>
+              </mat-list>
+
+              <!-- No Results Message -->
+              <div *ngIf="filteredNewsItems.length === 0" class="text-center py-8">
+                <mat-icon class="text-gray-400 !text-4xl mb-2">article</mat-icon>
+                <p class="text-gray-500">No news found for the selected criteria</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Section - News Detail -->
+    <div class="flex-1 flex flex-col p-4">
+      <!-- News Detail Card -->
+      <div class="overflow-hidden rounded-lg bg-white shadow-sm flex-1 flex flex-col" *ngIf="selectedNewsItem">
+        <!-- News Detail Header -->
+        <div class="px-4 py-5 sm:p-6 border-b bg-gray-50">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm text-gray-500 flex items-center">
+            <mat-icon class="!text-sm mr-1">schedule</mat-icon>
+            {{ formatDate(selectedNewsItem.publishedDate) }}
+          </span>
+          <button mat-icon-button (click)="closeNewsDetail()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">
+          {{ selectedNewsItem.title }}
+        </h2>
+        <div class="flex items-center gap-3 text-sm text-gray-600">
+          <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+            {{ selectedNewsItem.category }}
+          </span>
+          <span>{{ selectedNewsItem.source }}</span>
+        </div>
+        </div>
+
+        <!-- News Detail Content -->
+        <div class="flex-1 overflow-y-auto px-4 py-5 sm:p-6">
+        
+        <!-- Summary -->
+        <div class="mb-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-3">Summary</h3>
+          <p class="text-gray-700 leading-relaxed bg-blue-50 p-4 rounded-lg">
+            {{ selectedNewsItem.summary }}
+          </p>
+        </div>
+
+        <!-- Full Content -->
+        <div class="mb-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-3">Full Article</h3>
+          <div class="prose max-w-none text-gray-700 leading-relaxed">
+            <p>{{ selectedNewsItem.content }}</p>
+          </div>
+        </div>
+
+        <!-- Additional Actions -->
+        <div class="flex gap-2 pt-4 border-t">
+          <button mat-stroked-button class="flex items-center">
+            <mat-icon class="mr-2">share</mat-icon>
+            Share
+          </button>
+          <button mat-stroked-button class="flex items-center">
+            <mat-icon class="mr-2">bookmark</mat-icon>
+            Save
+          </button>
+        </div>
+      </div>
+
+      <!-- Placeholder when no news selected -->
+      <div class="overflow-hidden rounded-lg bg-white shadow-sm flex-1 flex flex-col" *ngIf="!selectedNewsItem">
+        <div class="px-4 py-5 sm:p-6 flex-1 flex items-center justify-center text-gray-500">
+          <div class="text-center">
+            <mat-icon class="!text-6xl mb-4 text-gray-300">article</mat-icon>
+            <h3 class="text-lg font-medium mb-2">Select a news article</h3>
+            <p>Click on any news item from the left to view details</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

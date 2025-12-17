@@ -1,6 +1,6 @@
 <div class="px-4 flex flex-col h-full" [class.drawer-open]="reportDrawerOpen">
   <div class="map-toolbar flex flex-row align-items-center p-2 mb-3">
-    <h2 class="flex-1 flex items-center">Maps</h2>
+    <h2 class="flex-1 flex items-center text-xl">ផែនទី</h2>
     <section class="flex gap-2 items-center">
       <!-- Drawing controls - only visible when report drawer is open -->
       <div class="flex items-center gap-2" *ngIf="reportDrawerOpen">
@@ -41,39 +41,15 @@
     <!-- Data button -->
     <div class="flex items-center gap-2">
       <!-- Mini Calendar with Material Datepicker -->
-      <div class="calendar-controls flex items-center gap-2 py-1 bg-gray-50 rounded-lg shadow-sm border-solid border border-gray-200 h-14">
-        <!-- Previous button -->
-        <button mat-icon-button (click)="goToPreviousPeriod()" aria-label="Previous">
-          <mat-icon>chevron_left</mat-icon>
-        </button>
-        
-        <!-- Date range display with dropdown -->
-        <div class="flex-1 flex items-center justify-center gap-2">
-          <mat-form-field appearance="outline" class="date-range-selector">
-            <mat-select  [(value)]="dateRangeMode" (selectionChange)="setDateRangeMode($event.value)">
-              <mat-option value="today">Today</mat-option>
-              <mat-option value="week">Week</mat-option>
-              <mat-option value="month">Month</mat-option>
-            </mat-select>
-          </mat-form-field>
-          
-          <div class="text-sm font-medium text-gray-700 min-w-max">{{ getDateRangeLabel() }}</div>
-          
-          <!-- Calendar button with datepicker -->
-          <div class="relative inline-block">
-            <button mat-icon-button (click)="picker.open()" aria-label="Select date">
-              <mat-icon>calendar_today</mat-icon>
-            </button>
-            <input matInput [matDatepicker]="picker" [(ngModel)]="selectedDate" (dateChange)="onDateChange($event)" style="position: absolute; left: 0; top: 0; width: 40px; height: 40px; opacity: 0; pointer-events: none;">
-            <mat-datepicker #picker></mat-datepicker>
-          </div>
-        </div>
-        
-        <!-- Next button -->
-        <button mat-icon-button (click)="goToNextPeriod()" aria-label="Next">
-          <mat-icon>chevron_right</mat-icon>
-        </button>
-      </div>
+      <app-calendar-controls
+        [dateRangeMode]="dateRangeMode"
+        [selectedDate]="selectedDate"
+        [dateRangeLabel]="getDateRangeLabel()"
+        (dateRangeModeChange)="setDateRangeMode($event)"
+        (selectedDateChange)="onDateChange($event)"
+        (previousPeriod)="goToPreviousPeriod()"
+        (nextPeriod)="goToNextPeriod()">
+      </app-calendar-controls>
       <div class="flex items-center pl-2 ml-2 h-14 rounded">
         <ui-button type="ghost" size="sm" htmlType="button" (clicked)="toggleDataPanel()" aria-label="Data">
           <span class="flex flex-row items-center gap-1 p-1">
@@ -124,7 +100,52 @@
         </div>
       </aside>
 
-    <div class="map-container h-full">
+    <div class="map-container h-full relative">
+      <!-- Search Box positioned over map -->
+      <div class="absolute top-2 left-1/2 transform -translate-x-1/2 z-10" *ngIf="hasApiKey && googleLoaded">
+        <div class="relative">
+          <div class="flex items-center bg-white rounded-lg shadow-lg border px-2 py-1 min-w-80">
+            <mat-icon class="text-gray-500 mr-2">search</mat-icon>
+            <input 
+              #searchInput
+              type="text" 
+              placeholder="Search places..." 
+              class="flex-1 outline-none text-sm bg-transparent"
+              (input)="onSearchInput($event)"
+              (keydown.enter)="selectPlace(searchInput.value)"
+              (keydown.arrowdown)="navigateAutocomplete(1)"
+              (keydown.arrowup)="navigateAutocomplete(-1)"
+              (keydown.escape)="hideAutocomplete()"
+              (blur)="onSearchBlur()"
+            />
+            <button 
+              mat-icon-button 
+              (click)="selectPlace(searchInput.value)"
+              class="ml-2">
+              <mat-icon class="!text-base">arrow_forward</mat-icon>
+            </button>
+          </div>
+          
+          <!-- Autocomplete dropdown -->
+          <div 
+            class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-b-lg shadow-lg max-h-60 overflow-y-auto z-20"
+            *ngIf="showAutocomplete && autocompletePredictions.length > 0">
+            <div 
+              *ngFor="let prediction of autocompletePredictions; let i = index"
+              class="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+              [class.bg-blue-50]="i === selectedIndex"
+              (click)="selectPrediction(prediction)"
+              (mouseenter)="selectedIndex = i">
+              <mat-icon class="text-gray-400 mr-3 !text-base">place</mat-icon>
+              <div class="flex-1">
+                <div class="text-sm font-medium text-gray-900">{{ prediction.structured_formatting.main_text }}</div>
+                <div class="text-xs text-gray-500">{{ prediction.structured_formatting.secondary_text }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <ng-container class="h-full flex p-3" *ngIf="hasApiKey && googleLoaded; else noKey">
         <!-- Using circles instead of deprecated markers -->
         <google-map
