@@ -6,6 +6,7 @@ import { FirebaseService } from '../../services/firebase.service';
 import type { CrimeReport } from '../../services/firebase.service';
 import { UIComponentBase } from '../../components/UIs/ui-components.base';
 import { UIComponentsService } from '../../components/UIs/ui-components.service';
+import { DateRangeMode } from '../../components/calendar-controls/calendar-controls.component';
 
 @Component({
   selector: 'app-maps',
@@ -33,13 +34,20 @@ export class MapsComponent extends UIComponentBase implements OnInit {
 
   selectedType: string | null = null;
 
+  // Autocomplete properties
+  showAutocomplete = false;
+  autocompletePredictions: google.maps.places.AutocompletePrediction[] = [];
+  selectedIndex = -1;
+  private autocompleteService: google.maps.places.AutocompleteService | undefined;
+  private searchTimeout: any;
+
   // Use optional chaining to avoid runtime errors if `environment` is undefined
   hasApiKey = !!environment?.googleMapsApiKey;
 
   center: google.maps.LatLngLiteral = { lat: 11.5564, lng: 104.9282 };
   zoom = 12;
   options: google.maps.MapOptions = {
-    mapTypeId: 'roadmap',
+    mapTypeId: 'terrain',
     disableDefaultUI: false,
   };
 
@@ -66,7 +74,7 @@ export class MapsComponent extends UIComponentBase implements OnInit {
   dataPanelOpen = false;
 
   // Calendar state
-  dateRangeMode: 'today' | 'week' | 'month' = 'week';
+  dateRangeMode: DateRangeMode = 'week';
   selectedDate: Date = new Date();
   startDate: Date = new Date();
   endDate: Date = new Date();
@@ -685,7 +693,7 @@ export class MapsComponent extends UIComponentBase implements OnInit {
       script.defer = true;
       // Use optional chaining so we don't try to access a property on undefined
       const key = environment?.googleMapsApiKey || '';
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=places,drawing`;
       script.onload = () => resolve();
       script.onerror = (ev) => reject(ev);
       document.head.appendChild(script);
@@ -786,7 +794,7 @@ export class MapsComponent extends UIComponentBase implements OnInit {
   }
 
   // Calendar methods
-  setDateRangeMode(mode: 'today' | 'week' | 'month'): void {
+  setDateRangeMode(mode: DateRangeMode): void {
     this.dateRangeMode = mode;
     this.updateDateRange();
   }
@@ -822,12 +830,9 @@ export class MapsComponent extends UIComponentBase implements OnInit {
     this.updateDateRange();
   }
 
-  onDateChange(event: any): void {
-    const newDate = event.value;
-    if (newDate) {
-      this.selectedDate = newDate;
-      this.updateDateRange();
-    }
+  onDateChange(date: Date): void {
+    this.selectedDate = date;
+    this.updateDateRange();
   }
 
   private updateDateRange(): void {
@@ -1043,5 +1048,177 @@ export class MapsComponent extends UIComponentBase implements OnInit {
     // As last resort, check nested property e.g. { location: { lat: ..., lng: ... } }
     if (location.location) return this.extractLatLngFromLocation(location.location);
     return null;
+  }
+
+  /**
+   * Handle search input changes for autocomplete
+   */
+  onSearchInput(event: any): void {
+    const query = event.target.value;
+    
+    // Clear previous timeout
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
+
+    if (query.trim().length < 2) {
+      this.hideAutocomplete();
+      return;
+    }
+
+    // Debounce the search to avoid too many API calls
+    this.searchTimeout = setTimeout(() => {
+      this.getAutocompletePredictions(query);
+    }, 300);
+  }
+
+  /**
+   * Get autocomplete predictions from Google Places API
+   */
+  private getAutocompletePredictions(query: string): void {
+    if (!this.autocompleteService) {
+      this.autocompleteService = new google.maps.places.AutocompleteService();
+    }
+
+    const request: google.maps.places.AutocompletionRequest = {
+      input: query,
+      location: new google.maps.LatLng(this.center.lat, this.center.lng),
+      radius: 50000, // 50km radius
+    };
+
+    this.autocompleteService.getPlacePredictions(request, (predictions, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+        this.autocompletePredictions = predictions;
+        this.selectedIndex = -1;
+        this.showAutocomplete = true;
+      } else {
+        this.hideAutocomplete();
+      }
+    });
+  }
+
+  /**
+   * Navigate through autocomplete suggestions with arrow keys
+   */
+  navigateAutocomplete(direction: number): void {
+    if (!this.showAutocomplete || this.autocompletePredictions.length === 0) {
+      return;
+    }
+
+    event?.preventDefault();
+    
+    this.selectedIndex += direction;
+    
+    if (this.selectedIndex < 0) {
+      this.selectedIndex = this.autocompletePredictions.length - 1;
+    } else if (this.selectedIndex >= this.autocompletePredictions.length) {
+      this.selectedIndex = 0;
+    }
+  }
+
+  /**
+   * Hide autocomplete dropdown
+   */
+  hideAutocomplete(): void {
+    this.showAutocomplete = false;
+    this.autocompletePredictions = [];
+    this.selectedIndex = -1;
+  }
+
+  /**
+   * Handle search blur (with delay to allow clicking on predictions)
+   */
+  onSearchBlur(): void {
+    setTimeout(() => {
+      this.hideAutocomplete();
+    }, 200);
+  }
+
+  /**
+   * Select a place from autocomplete predictions or direct search
+   */
+  selectPlace(query?: string): void {
+    if (this.selectedIndex >= 0 && this.autocompletePredictions.length > 0) {
+      // Use selected prediction
+      const prediction = this.autocompletePredictions[this.selectedIndex];
+      this.selectPrediction(prediction);
+    } else if (query && query.trim()) {
+      // Direct text search
+      this.searchPlaceByText(query);
+    }
+  }
+
+  /**
+   * Select a specific autocomplete prediction
+   */
+  selectPrediction(prediction: google.maps.places.AutocompletePrediction): void {
+    this.hideAutocomplete();
+    
+    if (!this.map?.googleMap) {
+      return;
+    }
+
+    // Use Places Service to get detailed place information
+    const service = new google.maps.places.PlacesService(this.map.googleMap);
+    
+    const request: google.maps.places.PlaceDetailsRequest = {
+      placeId: prediction.place_id,
+      fields: ['geometry', 'name', 'formatted_address']
+    };
+
+    service.getDetails(request, (place, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK && place && place.geometry?.location) {
+        this.navigateToPlace(place.geometry.location, place.name || prediction.description);
+      } else {
+        this.showToast('Could not get place details.', 'error');
+      }
+    });
+  }
+
+  /**
+   * Search for a place using text search (fallback)
+   */
+  private searchPlaceByText(query: string): void {
+    if (!this.map?.googleMap) {
+      return;
+    }
+
+    const service = new google.maps.places.PlacesService(this.map.googleMap);
+    
+    const request: google.maps.places.TextSearchRequest = {
+      query: query,
+      location: this.center,
+      radius: 50000,
+    };
+
+    service.textSearch(request, (results, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+        const place = results[0];
+        if (place.geometry?.location) {
+          this.navigateToPlace(place.geometry.location, place.name || query);
+        }
+      } else {
+        this.showToast('Place not found. Please try a different search term.', 'error');
+      }
+    });
+  }
+
+  /**
+   * Navigate map to a specific location
+   */
+  private navigateToPlace(location: google.maps.LatLng, placeName: string): void {
+    const newCenter = {
+      lat: location.lat(),
+      lng: location.lng()
+    };
+    
+    this.center = newCenter;
+    this.zoom = 15;
+    
+    if (this.map?.googleMap) {
+      this.map.googleMap.setCenter(newCenter);
+      this.map.googleMap.setZoom(this.zoom);
+    }
+
   }
 }

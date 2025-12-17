@@ -19,5 +19,10 @@ export const MENU_ITEMS: MenuItem[] = [
       { label: 'Hotel Map', icon: 'hotel', route: '/maps/hotel' },
       { label: 'Weather Map', icon: 'wb_sunny', route: '/maps/weather' }
     ]
+  },
+  { 
+    label: 'Politics', 
+    icon: 'gavel', 
+    route: '/politics' 
   }
 ];

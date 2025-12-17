@@ -1,0 +1,69 @@
+.politics-container {
+  font-family: 'Roboto', sans-serif;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.prose {
+  line-height: 1.75;
+}
+
+.prose p {
+  margin-bottom: 1.25rem;
+}
+
+mat-list-item:hover {
+  transition: background-color 0.2s ease;
+}
+
+.mat-mdc-list-item {
+  padding: 0 !important;
+  margin-bottom: 8px !important;
+}
+
+.mat-mdc-list-item:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Ensure proper spacing in news items */
+.mat-mdc-list-item .mdc-list-item__content {
+  padding: 0;
+}
+
+/* Custom form field styling */
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.mat-mdc-form-field .mat-mdc-form-field-flex {
+  background-color: white;
+}
+
+/* Button active state */
+.mat-accent {
+  background-color: #3f51b5 !important;
+  color: white !important;
+}
+
+/* Scrollbar styling */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
