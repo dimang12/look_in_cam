@@ -4,8 +4,6 @@ import { GoogleMap, MapInfoWindow, MapMarker } from '@angular/google-maps';
 import { environment } from '../../../environments/environment';
 import { FirebaseService } from '../../services/firebase.service';
 import type { CrimeReport } from '../../services/firebase.service';
-import { UIComponentBase } from '../../components/UIs/ui-components.base';
-import { UIComponentsService } from '../../components/UIs/ui-components.service';
 import { DateRangeMode } from '../../components/calendar-controls/calendar-controls.component';
 
 @Component({
@@ -15,7 +13,7 @@ import { DateRangeMode } from '../../components/calendar-controls/calendar-contr
   templateUrl: './maps.component.html',
   styleUrls: ['./maps.component.css']
 })
-export class MapsComponent extends UIComponentBase implements OnInit {
+export class MapsComponent implements OnInit {
   @HostBinding('class') hostClass = 'h-full w-full flex flex-col';
   @ViewChild(GoogleMap, { static: false }) map: GoogleMap | undefined;
   @ViewChild(MapInfoWindow, { static: false }) info: MapInfoWindow | undefined;
@@ -40,6 +38,11 @@ export class MapsComponent extends UIComponentBase implements OnInit {
   selectedIndex = -1;
   private autocompleteService: google.maps.places.AutocompleteService | undefined;
   private searchTimeout: any;
+
+  // Mobile UI state
+  showMobileMenu = false;
+  isMobile = false;
+  isTouch = false;
 
   // Use optional chaining to avoid runtime errors if `environment` is undefined
   hasApiKey = !!environment?.googleMapsApiKey;
@@ -111,7 +114,26 @@ export class MapsComponent extends UIComponentBase implements OnInit {
     imageUrl: null
   };
 
-  constructor(private route: ActivatedRoute, private router: Router, private firebaseService: FirebaseService, ui: UIComponentsService) { super(ui); }
+  constructor(private route: ActivatedRoute, private router: Router, private firebaseService: FirebaseService) { 
+    this.detectDeviceType();
+  }
+
+  /**
+   * Detect if device is mobile and touch-capable
+   */
+  private detectDeviceType(): void {
+    this.isMobile = window.innerWidth <= 768;
+    this.isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    
+    // Listen for window resize
+    window.addEventListener('resize', () => {
+      this.isMobile = window.innerWidth <= 768;
+      // Close mobile menu on resize to desktop
+      if (!this.isMobile) {
+        this.showMobileMenu = false;
+      }
+    });
+  }
 
   // Store custom overlays for markers with images
   private customOverlays: google.maps.OverlayView[] = [];
@@ -474,7 +496,6 @@ export class MapsComponent extends UIComponentBase implements OnInit {
   addReportMarker(): void {
     // Open the drawer and prepare a fresh report object
     this.reportDrawerOpen = true;
-    this.openDrawer('report-drawer', { source: 'maps' });
     this.report = {
       lat: null,
       lng: null,
@@ -492,7 +513,6 @@ export class MapsComponent extends UIComponentBase implements OnInit {
 
   closeReportDrawer(): void {
     this.reportDrawerOpen = false;
-    this.closeDrawer('report-drawer');
     // Clear any drawn overlay when closing the drawer
     if (this.currentDrawnOverlay) {
       (this.currentDrawnOverlay as any).setMap(null);
@@ -520,11 +540,10 @@ export class MapsComponent extends UIComponentBase implements OnInit {
     try {
       const url = await this.firebaseService.uploadImage(file, 'report-attachments');
       this.report.attachments = [...this.report.attachments, url];
-      this.showToast('Image uploaded', 'success', 2000);
+      console.log('Image uploaded successfully');
     } catch (err) {
       console.error('Upload failed', err);
       this.uploadError = 'Upload failed. Please try again.';
-      this.showToast('Upload failed', 'error', 2500);
     } finally {
       this.uploadingAttachment = false;
       input.value = '';
@@ -665,7 +684,7 @@ export class MapsComponent extends UIComponentBase implements OnInit {
       }
     }
 
-    this.showToast('Report saved', 'success', 3000);
+    console.log('Report saved successfully');
     this.closeReportDrawer();
   }
 
@@ -730,7 +749,6 @@ export class MapsComponent extends UIComponentBase implements OnInit {
   // Edit a marker: open drawer pre-filled
   editMarker(m: { position: google.maps.LatLngLiteral; title: string; type?: string; description?: string; imageUrl?: string; id?: string }, index: number): void {
     this.reportDrawerOpen = true;
-    this.openDrawer('report-drawer', { source: 'maps' });
     this.report = {
       lat: m.position.lat,
       lng: m.position.lng,
@@ -770,14 +788,12 @@ export class MapsComponent extends UIComponentBase implements OnInit {
         console.log('Attempting to delete from Firestore with ID:', m.id);
         await this.firebaseService.deleteMarker(m.id);
         console.log('Successfully deleted from Firestore');
-        this.showToast('Marker deleted', 'success', 2000);
       } catch (err) {
         console.error('Failed to delete marker from Firestore:', err);
-        this.showToast('Failed to delete from database', 'error', 3000);
       }
     } else {
       console.warn('Marker has no ID, skipping Firestore deletion');
-      this.showToast('Marker removed locally', 'success', 2000);
+      console.log('Marker removed locally');
     }
     
     // Refresh image overlays to remove the deleted marker's overlay
@@ -1050,27 +1066,7 @@ export class MapsComponent extends UIComponentBase implements OnInit {
     return null;
   }
 
-  /**
-   * Handle search input changes for autocomplete
-   */
-  onSearchInput(event: any): void {
-    const query = event.target.value;
-    
-    // Clear previous timeout
-    if (this.searchTimeout) {
-      clearTimeout(this.searchTimeout);
-    }
-
-    if (query.trim().length < 2) {
-      this.hideAutocomplete();
-      return;
-    }
-
-    // Debounce the search to avoid too many API calls
-    this.searchTimeout = setTimeout(() => {
-      this.getAutocompletePredictions(query);
-    }, 300);
-  }
+  // onSearchInput method moved to mobile-optimized version below
 
   /**
    * Get autocomplete predictions from Google Places API
@@ -1134,19 +1130,7 @@ export class MapsComponent extends UIComponentBase implements OnInit {
     }, 200);
   }
 
-  /**
-   * Select a place from autocomplete predictions or direct search
-   */
-  selectPlace(query?: string): void {
-    if (this.selectedIndex >= 0 && this.autocompletePredictions.length > 0) {
-      // Use selected prediction
-      const prediction = this.autocompletePredictions[this.selectedIndex];
-      this.selectPrediction(prediction);
-    } else if (query && query.trim()) {
-      // Direct text search
-      this.searchPlaceByText(query);
-    }
-  }
+  // selectPlace method moved to mobile-optimized version below
 
   /**
    * Select a specific autocomplete prediction
@@ -1170,7 +1154,7 @@ export class MapsComponent extends UIComponentBase implements OnInit {
       if (status === google.maps.places.PlacesServiceStatus.OK && place && place.geometry?.location) {
         this.navigateToPlace(place.geometry.location, place.name || prediction.description);
       } else {
-        this.showToast('Could not get place details.', 'error');
+        console.error('Could not get place details.');
       }
     });
   }
@@ -1198,7 +1182,7 @@ export class MapsComponent extends UIComponentBase implements OnInit {
           this.navigateToPlace(place.geometry.location, place.name || query);
         }
       } else {
-        this.showToast('Place not found. Please try a different search term.', 'error');
+        console.error('Place not found. Please try a different search term.');
       }
     });
   }
@@ -1220,5 +1204,132 @@ export class MapsComponent extends UIComponentBase implements OnInit {
       this.map.googleMap.setZoom(this.zoom);
     }
 
+  }
+
+  /**
+   * Toggle mobile menu visibility
+   */
+  toggleMobileMenu(): void {
+    this.showMobileMenu = !this.showMobileMenu;
+  }
+
+  /**
+   * Close mobile menu when drawer opens
+   */
+  openReportDrawer(lat?: number, lng?: number): void {
+    if (lat !== undefined && lng !== undefined) {
+      this.report.lat = lat;
+      this.report.lng = lng;
+    }
+    this.reportDrawerOpen = true;
+    // Close mobile menu on mobile when drawer opens
+    if (this.isMobile) {
+      this.showMobileMenu = false;
+    }
+  }
+
+  /**
+   * Close mobile menu when data panel opens
+   */
+  openDataPanel(): void {
+    this.dataPanelOpen = true;
+    // Close mobile menu on mobile when panel opens
+    if (this.isMobile) {
+      this.showMobileMenu = false;
+    }
+  }
+
+  /**
+   * Handle autocomplete for mobile devices
+   */
+  onSearchInput(event: any): void {
+    const query = event.target.value;
+    if (!query || query.length < 2) {
+      this.showAutocomplete = false;
+      this.autocompletePredictions = [];
+      return;
+    }
+
+    // Debounce search for better performance
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
+
+    this.searchTimeout = setTimeout(() => {
+      if (this.autocompleteService) {
+        this.autocompleteService.getPlacePredictions(
+          { 
+            input: query, 
+            componentRestrictions: { country: 'kh' } // Restrict to Cambodia
+          },
+          (predictions, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+              this.autocompletePredictions = predictions;
+              this.showAutocomplete = true;
+              this.selectedIndex = -1;
+            } else {
+              this.showAutocomplete = false;
+              this.autocompletePredictions = [];
+            }
+          }
+        );
+      }
+    }, 300);
+  }
+
+  /**
+   * Mobile-optimized place selection - handles both predictions and text search
+   */
+  selectPlace(input: google.maps.places.AutocompletePrediction | string): void {
+    // Handle text search
+    if (typeof input === 'string') {
+      if (this.selectedIndex >= 0 && this.autocompletePredictions.length > 0) {
+        const prediction = this.autocompletePredictions[this.selectedIndex];
+        this.selectPlacePrediction(prediction);
+      } else if (input.trim()) {
+        this.searchPlaceByText(input);
+      }
+      return;
+    }
+    
+    // Handle prediction selection
+    this.selectPlacePrediction(input);
+  }
+
+  /**
+   * Select place using prediction object
+   */
+  private selectPlacePrediction(prediction: google.maps.places.AutocompletePrediction): void {
+    const placesService = new google.maps.places.PlacesService(this.map?.googleMap!);
+    
+    placesService.getDetails(
+      { 
+        placeId: prediction.place_id,
+        fields: ['geometry', 'name', 'formatted_address']
+      },
+      (place, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) {
+          const location = place.geometry.location;
+          
+          // Center map on selected place
+          this.map?.googleMap?.setCenter(location);
+          this.map?.googleMap?.setZoom(16);
+          
+          // Clear search box and hide autocomplete
+          const searchInput = document.querySelector('.search-input') as HTMLInputElement;
+          if (searchInput) {
+            searchInput.value = place.name || place.formatted_address || '';
+          }
+          
+          this.showAutocomplete = false;
+          this.autocompletePredictions = [];
+          
+          // Close mobile menu after selection
+          if (this.isMobile) {
+            this.showMobileMenu = false;
+          }
+        }
+      }
+    );
   }
 }
