@@ -12,7 +12,6 @@ import { FooterComponent } from './layout/footer/footer.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { AppRoutingModule } from './app-routing.module';
 import { GoogleMapsModule } from '@angular/google-maps';
-import { AppToastsComponent } from './components/UIs/app-toasts.component';
 import { AppLoadingOverlayComponent } from './components/UIs/app-loading-overlay.component';
 import { ButtonComponent } from './components/UIs/basisUIs/button/button.component';
 import { MapsComponent } from './pages/maps/maps.component';
@@ -52,7 +51,6 @@ if (environment?.firebase && environment.firebase.projectId) {
     DashboardComponent,
     MapsComponent,
     SubmenuComponent,
-    AppToastsComponent,
     AppLoadingOverlayComponent,
     ButtonComponent,
     MapTypeTabsComponent,

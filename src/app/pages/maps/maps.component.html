@@ -1,36 +1,62 @@
-<div class="px-4 flex flex-col h-full" [class.drawer-open]="reportDrawerOpen">
-  <div class="map-toolbar flex flex-row align-items-center p-2 mb-3">
-    <h2 class="flex-1 flex items-center text-xl">ផែនទី</h2>
-    <section class="flex gap-2 items-center">
-      <!-- Drawing controls - only visible when report drawer is open -->
-      <div class="flex items-center gap-2" *ngIf="reportDrawerOpen">
-        <label class="text-sm text-gray-700">Draw:</label>
-        <select class="px-2 py-1 border rounded" [value]="selectedDrawMode" (change)="setDrawMode($any($event.target).value)">
+<div class="px-4 pb-2 flex flex-col h-full" [class.drawer-open]="reportDrawerOpen">
+  <!-- Mobile-friendly toolbar -->
+  <div class="map-toolbar flex flex-col sm:flex-row sm:items-center p-3 mb-3 space-y-2 sm:space-y-0 sm:space-x-2">
+    <div class="flex items-center justify-between w-full sm:w-auto">
+      <h2 class="flex items-center text-lg sm:text-xl font-medium">ផែនទី</h2>
+      <!-- Mobile menu toggle -->
+      <button class="sm:hidden" mat-icon-button (click)="toggleMobileMenu()" aria-label="Menu">
+        <mat-icon>{{ showMobileMenu ? 'close' : 'menu' }}</mat-icon>
+      </button>
+    </div>
+    
+    <!-- Mobile collapsible menu -->
+    <section class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center" 
+             [class.hidden]="!showMobileMenu" 
+             [class.sm:flex]="true">
+      
+      <!-- Drawing controls - mobile responsive -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2 bg-gray-50 rounded-lg" *ngIf="reportDrawerOpen">
+        <label class="text-sm text-gray-700 font-medium sm:whitespace-nowrap">Draw:</label>
+        <select class="flex-1 sm:flex-none px-3 py-2 border rounded-lg text-sm min-w-0" 
+                [value]="selectedDrawMode" 
+                (change)="setDrawMode($any($event.target).value)">
           <option value="marker">Marker</option>
           <option value="circle">Circle</option>
           <option value="polygon">Polygon</option>
           <option value="polyline">Polyline</option>
           <option value="rectangle">Rectangle</option>
         </select>
-        <ui-button type="ghost" size="sm" htmlType="button" (clicked)="toggleDrawing()">
+        <ui-button type="ghost" size="sm" htmlType="button" (clicked)="toggleDrawing()" class="justify-center">
           <span class="flex flex-row items-center p-1">
-            <i class="material-icons">edit</i>
-            {{ drawingEnabled ? 'Stop Drawing' : 'Start Drawing' }}
+            <i class="material-icons text-base">edit</i>
+            <span class="ml-1 hidden sm:inline">{{ drawingEnabled ? 'Stop Drawing' : 'Start Drawing' }}</span>
+            <span class="ml-1 sm:hidden">{{ drawingEnabled ? 'Stop' : 'Draw' }}</span>
           </span>
         </ui-button>
       </div>
       
-      <!-- Add button to add report -->
-      <ui-button extraClasses="rounded-pill" type="primary" size="sm" accent="purple" htmlType="button" (clicked)="addReportMarker()">
-        <span class="flex flex-row items-center p-1"><i class="material-icons mr-2">add_location</i> បញ្ចូលរបាយការណ៍</span>
+      <!-- Add report button - mobile responsive -->
+      <ui-button extraClasses="rounded-lg sm:rounded-pill w-full sm:w-auto" 
+                 type="primary" 
+                 size="sm" 
+                 accent="purple" 
+                 htmlType="button" 
+                 (clicked)="addReportMarker()">
+        <span class="flex flex-row items-center justify-center p-2">
+          <i class="material-icons mr-2">add_location</i>
+          <span class="hidden sm:inline">បញ្ចូលរបាយការណ៍</span>
+          <span class="sm:hidden">Add Report</span>
+        </span>
       </ui-button>
     </section>
   </div>
 
 
 
-  <nav class="maps-subtypes flex flex-row justify-between items-center mb-2 gap-4">
-    <div class="flex-1">
+  <!-- Mobile-responsive navigation -->
+  <nav class="maps-subtypes flex flex-col lg:flex-row gap-3 mb-3">
+    <!-- Map type tabs - full width on mobile -->
+    <div class="flex-1 min-w-0">
       <app-map-type-tabs 
         [subtypes]="subtypes" 
         [selectedType]="selectedType || ''"
@@ -38,23 +64,32 @@
       </app-map-type-tabs>
     </div>
   
-    <!-- Data button -->
-    <div class="flex items-center gap-2">
-      <!-- Mini Calendar with Material Datepicker -->
-      <app-calendar-controls
-        [dateRangeMode]="dateRangeMode"
-        [selectedDate]="selectedDate"
-        [dateRangeLabel]="getDateRangeLabel()"
-        (dateRangeModeChange)="setDateRangeMode($event)"
-        (selectedDateChange)="onDateChange($event)"
-        (previousPeriod)="goToPreviousPeriod()"
-        (nextPeriod)="goToNextPeriod()">
-      </app-calendar-controls>
-      <div class="flex items-center pl-2 ml-2 h-14 rounded">
-        <ui-button type="ghost" size="sm" htmlType="button" (clicked)="toggleDataPanel()" aria-label="Data">
-          <span class="flex flex-row items-center gap-1 p-1">
+    <!-- Controls section - stack on mobile -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 lg:gap-3">
+      <!-- Calendar controls - responsive -->
+      <div class="order-2 sm:order-1">
+        <app-calendar-controls
+          [dateRangeMode]="dateRangeMode"
+          [selectedDate]="selectedDate"
+          [dateRangeLabel]="getDateRangeLabel()"
+          (dateRangeModeChange)="setDateRangeMode($event)"
+          (selectedDateChange)="onDateChange($event)"
+          (previousPeriod)="goToPreviousPeriod()"
+          (nextPeriod)="goToNextPeriod()">
+        </app-calendar-controls>
+      </div>
+      
+      <!-- Data panel button - responsive -->
+      <div class="order-1 sm:order-2">
+        <ui-button type="ghost" 
+                   size="sm" 
+                   htmlType="button" 
+                   (clicked)="toggleDataPanel()" 
+                   aria-label="Data"
+                   class="w-full sm:w-auto h-12 sm:h-14">
+          <span class="flex flex-row items-center justify-center gap-2 p-2">
             <i class="material-icons text-sm">grid_view</i>
-            <span class="text-md">បង្ហាញទិន្នន័យ</span>
+            <span class="text-sm sm:text-base">បង្ហាញទិន្នន័យ</span>
           </span>
         </ui-button>
       </div>
@@ -100,90 +135,91 @@
         </div>
       </aside>
 
-    <div class="map-container h-full relative">
-      <!-- Search Box positioned over map -->
-      <div class="absolute top-2 left-1/2 transform -translate-x-1/2 z-10" *ngIf="hasApiKey && googleLoaded">
-        <div class="relative">
-          <div class="flex items-center bg-white rounded-lg shadow-lg border px-2 py-1 min-w-80">
-            <mat-icon class="text-gray-500 mr-2">search</mat-icon>
-            <input 
-              #searchInput
-              type="text" 
-              placeholder="Search places..." 
-              class="flex-1 outline-none text-sm bg-transparent"
-              (input)="onSearchInput($event)"
-              (keydown.enter)="selectPlace(searchInput.value)"
-              (keydown.arrowdown)="navigateAutocomplete(1)"
-              (keydown.arrowup)="navigateAutocomplete(-1)"
-              (keydown.escape)="hideAutocomplete()"
-              (blur)="onSearchBlur()"
-            />
-            <button 
-              mat-icon-button 
-              (click)="selectPlace(searchInput.value)"
-              class="ml-2">
-              <mat-icon class="!text-base">arrow_forward</mat-icon>
-            </button>
-          </div>
-          
-          <!-- Autocomplete dropdown -->
-          <div 
-            class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-b-lg shadow-lg max-h-60 overflow-y-auto z-20"
-            *ngIf="showAutocomplete && autocompletePredictions.length > 0">
+      <div class="map-container h-full relative">
+        <!-- Mobile-optimized search box -->
+        <div class="absolute top-2 left-2 right-2 sm:left-1/2 sm:right-auto sm:transform sm:-translate-x-1/2 z-10" *ngIf="hasApiKey && googleLoaded">
+          <div class="relative">
+            <div class="flex items-center bg-white rounded-lg shadow-lg border px-3 py-2 w-full sm:min-w-80 sm:w-auto">
+              <mat-icon class="text-gray-500 mr-2 flex-shrink-0">search</mat-icon>
+              <input 
+                #searchInput
+                type="text" 
+                placeholder="Search places..." 
+                class="flex-1 outline-none text-base sm:text-sm bg-transparent min-w-0"
+                (input)="onSearchInput($event)"
+                (keydown.enter)="selectPlace(searchInput.value)"
+                (keydown.arrowdown)="navigateAutocomplete(1)"
+                (keydown.arrowup)="navigateAutocomplete(-1)"
+                (keydown.escape)="hideAutocomplete()"
+                (blur)="onSearchBlur()"
+              />
+              <button 
+                mat-icon-button 
+                (click)="selectPlace(searchInput.value)"
+                class="ml-2 p-2 flex-shrink-0">
+                <mat-icon class="!text-lg sm:!text-base">arrow_forward</mat-icon>
+              </button>
+            </div>
+            
+            <!-- Mobile-optimized autocomplete dropdown -->
             <div 
-              *ngFor="let prediction of autocompletePredictions; let i = index"
-              class="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-              [class.bg-blue-50]="i === selectedIndex"
-              (click)="selectPrediction(prediction)"
-              (mouseenter)="selectedIndex = i">
-              <mat-icon class="text-gray-400 mr-3 !text-base">place</mat-icon>
-              <div class="flex-1">
-                <div class="text-sm font-medium text-gray-900">{{ prediction.structured_formatting.main_text }}</div>
-                <div class="text-xs text-gray-500">{{ prediction.structured_formatting.secondary_text }}</div>
+              class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-b-lg shadow-lg max-h-60 sm:max-h-80 overflow-y-auto z-20"
+              *ngIf="showAutocomplete && autocompletePredictions.length > 0">
+              <div 
+                *ngFor="let prediction of autocompletePredictions; let i = index"
+                class="flex items-center px-4 py-4 sm:py-3 hover:bg-gray-50 active:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0 touch-manipulation"
+                [class.bg-blue-50]="i === selectedIndex"
+                (click)="selectPrediction(prediction)"
+                (mouseenter)="selectedIndex = i"
+                (touchstart)="selectedIndex = i">
+                <mat-icon class="text-gray-400 mr-3 !text-lg sm:!text-base flex-shrink-0">place</mat-icon>
+                <div class="flex-1 min-w-0">
+                  <div class="text-base sm:text-sm font-medium text-gray-900 truncate">{{ prediction.structured_formatting.main_text }}</div>
+                  <div class="text-sm sm:text-xs text-gray-500 truncate">{{ prediction.structured_formatting.secondary_text }}</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        <ng-container class="h-full flex p-3 rounded-lg" *ngIf="hasApiKey && googleLoaded; else noKey">
+          <!-- Using circles instead of deprecated markers -->
+          <google-map
+            height="100%"
+            width="100%"
+            [center]="center"
+            [zoom]="zoom"
+            [options]="options"
+            (mapClick)="onMapClick($event)"
+            (mapInitialized)="onMapInitialized($event)">
+
+            <map-circle
+              *ngFor="let m of markers"
+              [center]="m.position"
+              [radius]="getCircleRadius()"
+              [options]="getCircleOptions(m)"
+              (circleClick)="openInfoForCircle(m)">
+            </map-circle>
+
+            <map-info-window>
+              <div>
+                <div class="fw-bold">{{ selectedMarkerTitle }}</div>
+                <div class="text-muted small" *ngIf="selectedMarkerType">{{ getTypeLabel(selectedMarkerType) }}</div>
+                <div class="text-muted small" *ngIf="selectedMarkerDescription">{{ selectedMarkerDescription }}</div>
+              </div>
+            </map-info-window>
+          </google-map>
+        </ng-container>
+
+
+        <ng-template #noKey>
+          <div class="map-placeholder p-3 border">
+            <p>
+              Google Maps API key is not set. Please set <code>environment.googleMapsApiKey</code> to a valid key.
+            </p>
+          </div>
+        </ng-template>
       </div>
-
-      <ng-container class="h-full flex p-3" *ngIf="hasApiKey && googleLoaded; else noKey">
-        <!-- Using circles instead of deprecated markers -->
-        <google-map
-          height="100%"
-          width="100%"
-          [center]="center"
-          [zoom]="zoom"
-          [options]="options"
-          (mapClick)="onMapClick($event)"
-          (mapInitialized)="onMapInitialized($event)">
-
-          <map-circle
-            *ngFor="let m of markers"
-            [center]="m.position"
-            [radius]="getCircleRadius()"
-            [options]="getCircleOptions(m)"
-            (circleClick)="openInfoForCircle(m)">
-          </map-circle>
-
-          <map-info-window>
-            <div>
-              <div class="fw-bold">{{ selectedMarkerTitle }}</div>
-              <div class="text-muted small" *ngIf="selectedMarkerType">{{ getTypeLabel(selectedMarkerType) }}</div>
-              <div class="text-muted small" *ngIf="selectedMarkerDescription">{{ selectedMarkerDescription }}</div>
-            </div>
-          </map-info-window>
-        </google-map>
-      </ng-container>
-
-
-      <ng-template #noKey>
-        <div class="map-placeholder p-3 border">
-          <p>
-            Google Maps API key is not set. Please set <code>environment.googleMapsApiKey</code> to a valid key.
-          </p>
-        </div>
-      </ng-template>
-    </div>
     </div>
 
     <!-- Right drawer -->

@@ -19,15 +19,9 @@ export class UIComponentsService {
   }
 
   showToast(message: string, level: ToastLevel = 'info', durationMs?: number) {
-    const id = this.genId('t_');
-    const t: Toast = { id, message, level, durationMs };
-    const s = this.state$.value;
-    const next = { ...s, toasts: [...s.toasts, t] };
-    this.state$.next(next);
-    if (durationMs && durationMs > 0) {
-      setTimeout(() => this.dismissToast(id), durationMs);
-    }
-    return id;
+    // Toast component removed - logging message instead
+    console.log(`[${level.toUpperCase()}] ${message}`);
+    return this.genId('t_');
   }
 
   dismissToast(id: string) {

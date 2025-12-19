@@ -108,9 +108,87 @@
   line-height: 36px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* Mobile touch targets */
+.mobile-touch-target {
+  min-width: 44px !important;
+  min-height: 44px !important;
+}
+
+/* Mobile compact form field */
+.mobile-compact.date-range-selector {
+  min-width: 80px;
+  max-width: 100px;
+}
+
+/* Enhanced Responsive Design */
+@media (max-width: 640px) {
   .calendar-controls {
-    flex-wrap: wrap;
+    min-width: auto;
+    padding: 8px;
+    min-height: auto;
+  }
+  
+  /* Mobile form field adjustments */
+  .mobile-compact .mat-mdc-form-field-flex {
+    height: 40px;
+  }
+  
+  .mobile-compact .mat-mdc-form-field-infix {
+    padding: 6px 0;
+    min-height: 28px;
+  }
+  
+  .mobile-compact .mat-mdc-select-value {
+    font-size: 0.8rem;
+    line-height: 1.2;
+  }
+  
+  /* Touch-friendly icon buttons */
+  .calendar-controls .mat-mdc-icon-button {
+    width: 44px !important;
+    height: 44px !important;
+    padding: 8px !important;
+  }
+  
+  .calendar-controls .mat-mdc-icon-button mat-icon {
+    font-size: 20px;
+  }
+  
+  /* Date label responsive */
+  .calendar-controls .text-sm {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    padding: 4px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-controls {
+    padding: 6px;
+  }
+  
+  .mobile-compact.date-range-selector {
+    min-width: 70px;
+    max-width: 85px;
+  }
+  
+  .mobile-compact .mat-mdc-select-value {
+    font-size: 0.75rem;
+  }
+  
+  /* Extra compact for very small screens */
+  .calendar-controls .text-sm {
+    font-size: 0.7rem;
+    max-width: 120px;
+  }
+}
+
+@media (min-width: 641px) {
+  .calendar-controls {
+    min-width: 300px;
+  }
+  
+  .date-range-selector {
+    min-width: 100px;
   }
 }

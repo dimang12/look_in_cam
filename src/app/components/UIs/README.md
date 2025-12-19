@@ -1,10 +1,11 @@
 UIComponentsService
 
 This tiny service centralizes small UI primitives used across the app:
-- toasts (show/dismiss)
 - a loading counter (show/hide)
 - drawers (open/close/get state)
 - confirm (simple wrapper)
+
+Note: Toast functionality has been removed. Messages are now logged to console instead.
 
 Usage:
 
@@ -14,10 +15,11 @@ Usage:
 constructor(private ui: UIComponentsService) {}
 ```
 
-2. Show a toast:
+2. Log a message (toast functionality removed):
 
 ```ts
-this.ui.showToast('Saved', 'success', 3000);
+// Instead of showing toast, messages are logged to console
+console.log('Saved successfully');
 ```
 
 3. Show a full-screen loading indicator:

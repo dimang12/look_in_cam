@@ -40,7 +40,7 @@
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  max-height: calc(100vh - 10px);
+  max-height: calc(100vh - 240px);
   display: flex;
   flex-direction: column;
 }
@@ -198,12 +198,99 @@ mat-form-field.w-100 {
 
 
 
-/* Responsive */
-@media (max-width: 768px) {
+/* Enhanced Mobile Responsive Design */
+
+/* Touch-friendly button sizing */
+.mobile-touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Mobile toolbar improvements */
+.map-toolbar {
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 640px) {
+  /* Mobile-first adjustments */
   .map-and-drawer {
     grid-template-columns: 1fr;
+    gap: 0;
+    padding: 0;
   }
 
+  /* Mobile drawer - slide up from bottom */
+  .report-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    max-height: 85vh;
+    border: none;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+  }
+
+  .drawer-content {
+    padding: 16px;
+  }
+
+  .drawer-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .drawer-title {
+    font-size: 16px;
+  }
+
+  /* Mobile form improvements */
+  .coordinates-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .report-form {
+    gap: 12px;
+  }
+
+  /* Form actions */
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 12px;
+  }
+
+  .form-actions button {
+    width: 100%;
+    min-width: auto;
+  }
+
+  /* Mobile attachment improvements */
+  .attachment-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .attachment-item .flex-1 {
+    width: 100%;
+  }
+
+  /* Map container mobile adjustments */
+  .map-container {
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Tablet adjustments */
   .report-drawer {
     max-width: 100%;
     position: fixed;
@@ -213,9 +300,64 @@ mat-form-field.w-100 {
     border-radius: 16px 16px 0 0;
     max-height: 80vh;
   }
+}
 
-  .coordinates-row {
-    grid-template-columns: 1fr;
+/* Enhanced data panel for mobile */
+@media (max-width: 640px) {
+  .data-panel {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0;
+    z-index: 1001;
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+
+  .panel-header {
+    padding: 16px;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .panel-content {
+    padding-top: 16px;
+  }
+
+  .marker-item {
+    padding: 16px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .marker-title {
+    font-size: 16px;
+  }
+}
+
+/* Touch improvements */
+@media (hover: none) and (pointer: coarse) {
+  /* Touch device specific styles */
+  .marker-item:hover {
+    background-color: transparent;
+  }
+
+  .marker-item:active {
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+
+  /* Larger touch targets */
+  .mat-mdc-icon-button {
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  /* Better autocomplete for touch */
+  .autocomplete-item {
+    min-height: 56px;
+    padding: 16px;
   }
 }
 

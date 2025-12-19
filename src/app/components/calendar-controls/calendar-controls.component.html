@@ -1,34 +1,42 @@
-<div class="calendar-controls flex items-center gap-2 py-1 bg-gray-50 rounded-lg shadow-sm border-solid border border-gray-200 h-14">
-  <!-- Previous button -->
-  <button mat-icon-button (click)="goToPreviousPeriod()" aria-label="Previous">
-    <mat-icon>chevron_left</mat-icon>
-  </button>
-  
-  <!-- Date range display with dropdown -->
-  <div class="flex-1 flex items-center justify-center gap-2">
-    <div class="flex items-center gap-2 w-32">
-        <mat-form-field appearance="outline" class="date-range-selector h-8">
-            <mat-select [value]="dateRangeMode" (selectionChange)="setDateRangeMode($event.value)">
-                <mat-option value="today">Today</mat-option>
-                <mat-option value="week">Week</mat-option>
-                <mat-option value="month">Month</mat-option>
-            </mat-select>
-        </mat-form-field>
-    </div>
-    <div class="text-sm font-medium text-gray-700 min-w-max">{{ dateRangeLabel }}</div>
+<div class="calendar-controls flex items-center gap-2 py-2 sm:py-1 bg-gray-50 rounded-lg shadow-sm border-solid border border-gray-200 min-h-14">
+  <!-- Mobile: stacked layout, Desktop: horizontal layout -->
+  <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 w-full pr-4">
     
-    <!-- Calendar button with datepicker -->
-    <div class="relative inline-block">
-      <button mat-icon-button (click)="picker.open()" aria-label="Select date">
-        <mat-icon>calendar_today</mat-icon>
+    <!-- Navigation row (always horizontal) -->
+    <div class="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+      <button mat-icon-button (click)="goToPreviousPeriod()" aria-label="Previous" class="flex-shrink-0">
+        <mat-icon>chevron_left</mat-icon>
       </button>
-      <input matInput [matDatepicker]="picker" [value]="selectedDate" (dateChange)="onDateChange($event)" style="position: absolute; left: 0; top: 0; width: 40px; height: 40px; opacity: 0; pointer-events: none;">
-      <mat-datepicker #picker></mat-datepicker>
+      
+      <!-- Date range selector - compact on mobile -->
+      <div class="flex items-center gap-1 sm:gap-2 min-w-0">
+        <mat-form-field appearance="outline" class="date-range-selector mobile-compact">
+          <mat-select [value]="dateRangeMode" (selectionChange)="setDateRangeMode($event.value)">
+            <mat-option value="today">Today</mat-option>
+            <mat-option value="week">Week</mat-option>
+            <mat-option value="month">Month</mat-option>
+          </mat-select>
+        </mat-form-field>
+        
+        <!-- Calendar button -->
+        <div class="relative flex-shrink-0">
+          <button mat-icon-button (click)="picker.open()" aria-label="Select date" class="mobile-touch-target">
+            <mat-icon>calendar_today</mat-icon>
+          </button>
+          <input matInput [matDatepicker]="picker" [value]="selectedDate" (dateChange)="onDateChange($event)" style="position: absolute; left: 0; top: 0; width: 40px; height: 40px; opacity: 0; pointer-events: none;">
+          <mat-datepicker #picker></mat-datepicker>
+        </div>
+      </div>
+      
+      <button mat-icon-button (click)="goToNextPeriod()" aria-label="Next" class="flex-shrink-0">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
     </div>
+    
+    <!-- Date label - below on mobile, right on desktop -->
+    <div class="text-xs font-medium text-gray-700 text-center sm:text-left whitespace-nowrap overflow-hidden text-ellipsis max-w-full sm:max-w-none px-2 sm:px-0">
+      {{ dateRangeLabel }}
+    </div>
+    
   </div>
-  
-  <!-- Next button -->
-  <button mat-icon-button (click)="goToNextPeriod()" aria-label="Next">
-    <mat-icon>chevron_right</mat-icon>
-  </button>
 </div>
