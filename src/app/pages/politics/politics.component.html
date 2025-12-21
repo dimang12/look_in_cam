@@ -46,7 +46,25 @@
         <div class="overflow-hidden rounded-lg bg-white shadow-sm flex-1 flex flex-col">
           <div class="px-4 py-5 sm:p-6 flex-1 flex flex-col">
             <div class="flex-1 overflow-y-auto">
-              <mat-list>
+              
+              <!-- Loading State -->
+              <div *ngIf="loading" class="text-center py-8">
+                <mat-spinner diameter="40" class="mx-auto mb-4"></mat-spinner>
+                <p class="text-gray-600">Loading news articles...</p>
+              </div>
+
+              <!-- Error State -->
+              <div *ngIf="error && !loading" class="text-center py-8">
+                <mat-icon class="text-red-400 !text-4xl mb-2">error_outline</mat-icon>
+                <p class="text-red-600 mb-4">{{ error }}</p>
+                <button mat-raised-button color="primary" (click)="loadNewsArticles()">
+                  <mat-icon class="mr-2">refresh</mat-icon>
+                  Retry
+                </button>
+              </div>
+
+              <!-- News List -->
+              <mat-list *ngIf="!loading && !error">
                 <mat-list-item 
                   *ngFor="let news of filteredNewsItems; let i = index"
                   (click)="selectNewsItem(news)"
@@ -85,7 +103,7 @@
               </mat-list>
 
               <!-- No Results Message -->
-              <div *ngIf="filteredNewsItems.length === 0" class="text-center py-8">
+              <div *ngIf="filteredNewsItems.length === 0 && !loading && !error" class="text-center py-8">
                 <mat-icon class="text-gray-400 !text-4xl mb-2">article</mat-icon>
                 <p class="text-gray-500">No news found for the selected criteria</p>
               </div>

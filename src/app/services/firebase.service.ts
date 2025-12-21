@@ -24,6 +24,18 @@ export interface CrimeReport {
   attachments: string[];
 }
 
+export interface NewsArticle {
+  id?: string;
+  title: string;
+  summary: string;
+  content: string;
+  publishedDate?: any;
+  createdAt?: any;
+  source: string;
+  category: string;
+  imageUrl?: string;
+}
+
 export type MapShapeType = 'circle' | 'polygon' | 'polyline' | 'rectangle';
 export interface MapShapeRecord {
   id?: string;
@@ -128,5 +140,44 @@ export class FirebaseService {
     const items: MapShapeRecord[] = [];
     snap.forEach((doc: QueryDocumentSnapshot) => items.push({ id: doc.id, ...(doc.data() as any) }));
     return items;
+  }
+
+  // News articles methods
+  async getNewsArticles(): Promise<NewsArticle[]> {
+    const db = getFirestore();
+    const newsRef = collection(db, 'news_articles');
+    const snap = await getDocs(newsRef);
+    const articles: NewsArticle[] = [];
+    
+    snap.forEach((doc: QueryDocumentSnapshot) => {
+      articles.push({ 
+        id: doc.id, 
+        ...(doc.data() as Omit<NewsArticle, 'id'>) 
+      });
+    });
+    
+    // Sort by publishedDate or createdAt (newest first)
+    articles.sort((a, b) => {
+      const dateA = a.publishedDate || a.createdAt || new Date(0);
+      const dateB = b.publishedDate || b.createdAt || new Date(0);
+      
+      // Handle Firestore timestamps
+      const timestampA = dateA && typeof dateA.toDate === 'function' ? dateA.toDate() : new Date(dateA);
+      const timestampB = dateB && typeof dateB.toDate === 'function' ? dateB.toDate() : new Date(dateB);
+      
+      return timestampB.getTime() - timestampA.getTime();
+    });
+    
+    return articles;
+  }
+
+  async addNewsArticle(article: Omit<NewsArticle, 'id'>): Promise<string> {
+    const db = getFirestore();
+    const newsRef = collection(db, 'news_articles');
+    const docRef = await addDoc(newsRef, {
+      ...article,
+      createdAt: new Date()
+    });
+    return docRef.id;
   }
 }

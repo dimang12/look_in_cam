@@ -30,6 +30,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatListModule } from '@angular/material/list';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 // Firebase: use the modular SDK directly (avoid @angular/fire if its published versions mismatch)
 import { initializeApp } from 'firebase/app';
@@ -75,6 +76,7 @@ if (environment?.firebase && environment.firebase.projectId) {
     MatNativeDateModule,
     MatListModule,
     MatTabsModule,
+    MatProgressSpinnerModule,
   ],
   providers: [
   ],

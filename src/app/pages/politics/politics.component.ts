@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DateRangeMode } from '../../components/calendar-controls/calendar-controls.component';
+import { FirebaseService } from '../../services/firebase.service';
 
 export interface NewsItem {
   id: string;
@@ -28,41 +29,83 @@ export class PoliticsComponent implements OnInit {
   selectedDate: Date = new Date();
 
   // News data
-  allNewsItems: NewsItem[] = [
-    {
-      id: '1',
-      title: 'សភាជាតិបានអនុម័តច្បាប់ថ្មីស្តីពីការបោះឆ្នោត',
-      summary: 'សភាជាតិបានអនុម័តច្បាប់ថ្មីមួយដែលនឹងផ្លាស់ប្តូរវិធីសាស្រ្តបោះឆ្នោត',
-      content: 'នេះជាមាតិកាលម្អិតនៃការអនុម័តច្បាប់ថ្មីស្តីពីការបោះឆ្នោត។ ច្បាប់នេះនឹងមានប្រសិទ្ធភាពចាប់ពីឆ្នាំ២០២៦។ វាបានកំណត់នូវវិធីសាស្រ្តថ្មីសម្រាប់ការបោះឆ្នោតជាតិ និងការបោះឆ្នោតក្នុងស្រុក។',
-      publishedDate: new Date('2025-12-15'),
-      source: 'Cambodia News Network',
-      category: 'រដ្ឋាភិបាល'
-    },
-    {
-      id: '2',
-      title: 'នាយករដ្ឋមន្ត្រីបានជួបជាមួយប្រតិភូអន្តរជាតិ',
-      summary: 'កិច្ចប្រជុំដ៏សំខាន់មួយបានធ្វើឡើងនៅវិមានសន្តិភាព',
-      content: 'នាយករដ្ឋមន្ត្រីបានធ្វើកិច្ចប្រជុំជាមួយប្រតិភូអន្តរជាតិ ដើម្បីពិភាក្សាអំពីសហការភាពក្នុងតំបន់។ កិច្ចប្រជុំនេះបានផ្តោតលើការអភិវឌ្ឍន៍សេដ្ឋកិច្ច និងការធានាសន្តិភាពក្នុងតំបន់។',
-      publishedDate: new Date('2025-12-14'),
-      source: 'National Press Agency',
-      category: 'អន្តរជាតិ'
-    },
-    {
-      id: '3',
-      title: 'គណៈកម្មការថ្មីត្រូវបានបង្កើតឡើង',
-      summary: 'គណៈកម្មការសម្រាប់ការកែទម្រង់រដ្ឋបាលត្រូវបានបង្កើតឡើង',
-      content: 'រដ្ឋាភិបាលបានប្រកាសបង្កើតគណៈកម្មការថ្មីមួយដើម្បីធ្វើការកែទម្រង់រដ្ឋបាលសាធារណៈ។ គណៈកម្មការនេះនឹងទទួលបន្ទុកក្នុងការធ្វើឱ្យប្រសើរឡើងនូវប្រសិទ្ធភាពនៃសេវាកម្មសាធារណៈ។',
-      publishedDate: new Date('2025-12-13'),
-      source: 'Government Herald',
-      category: 'រដ្ឋាភិបាល'
-    }
-  ];
-
+  allNewsItems: NewsItem[] = [];
   filteredNewsItems: NewsItem[] = [];
   selectedNewsItem: NewsItem | null = null;
 
+  // Loading state
+  loading = false;
+  error: string | null = null;
+
+  constructor(private firebaseService: FirebaseService) {}
+
   ngOnInit(): void {
-    this.applyFilters();
+    this.loadNewsArticles();
+  }
+
+  /**
+   * Load news articles from Firestore collection
+   */
+  async loadNewsArticles(): Promise<void> {
+    this.loading = true;
+    this.error = null;
+
+    try {
+      // Get news articles from Firestore
+      const articles = await this.firebaseService.getNewsArticles();
+      
+      // Transform Firestore data to NewsItem format
+      this.allNewsItems = articles.map(article => ({
+        id: article.id || `temp_${Date.now()}_${Math.random()}`,
+        title: article.title || '',
+        summary: article.summary || '',
+        content: article.content || '',
+        publishedDate: this.parseDate(article.publishedDate || article.createdAt),
+        source: article.source || 'Unknown Source',
+        category: article.category || 'General',
+        imageUrl: article.imageUrl
+      }));
+
+      console.log(`Loaded ${this.allNewsItems.length} news articles from Firestore`);
+      
+      // Apply filters after loading
+      this.applyFilters();
+
+    } catch (error) {
+      console.error('Error loading news articles:', error);
+      this.error = 'Failed to load news articles. Please try again later.';
+      
+      // Fallback to empty array
+      this.allNewsItems = [];
+      this.filteredNewsItems = [];
+      
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  /**
+   * Parse date from various formats
+   */
+  private parseDate(dateValue: any): Date {
+    if (!dateValue) return new Date();
+    
+    // Handle Firestore Timestamp
+    if (dateValue && typeof dateValue.toDate === 'function') {
+      return dateValue.toDate();
+    }
+    
+    // Handle string or number dates
+    if (typeof dateValue === 'string' || typeof dateValue === 'number') {
+      return new Date(dateValue);
+    }
+    
+    // Handle Date objects
+    if (dateValue instanceof Date) {
+      return dateValue;
+    }
+    
+    return new Date();
   }
 
   /**
