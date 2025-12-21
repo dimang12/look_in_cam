@@ -11,6 +11,7 @@ export interface NewsItem {
   source: string;
   category: string;
   imageUrl?: string;
+  viewed: number;
 }
 
 @Component({
@@ -63,13 +64,19 @@ export class PoliticsComponent implements OnInit {
         publishedDate: this.parseDate(article.publishedDate || article.createdAt),
         source: article.source || 'Unknown Source',
         category: article.category || 'General',
-        imageUrl: article.imageUrl
+        imageUrl: article.imageUrl,
+        viewed: article.viewed || 0
       }));
 
       console.log(`Loaded ${this.allNewsItems.length} news articles from Firestore`);
       
       // Apply filters after loading
       this.applyFilters();
+
+      // Select first article by default if not already selected
+      if (this.filteredNewsItems.length > 0 && !this.selectedNewsItem) {
+        this.selectedNewsItem = this.filteredNewsItems[0];
+      }
 
     } catch (error) {
       console.error('Error loading news articles:', error);
@@ -142,7 +149,27 @@ export class PoliticsComponent implements OnInit {
       );
     }
 
-    this.filteredNewsItems = filtered.sort((a, b) => b.publishedDate.getTime() - a.publishedDate.getTime());
+    // Sort by viewed count (most viewed first), then by published date (newest first)
+    filtered.sort((a, b) => {
+      // First sort by viewed count (descending)
+      if (b.viewed !== a.viewed) {
+        return b.viewed - a.viewed;
+      }
+      // Then sort by published date (newest first)
+      return b.publishedDate.getTime() - a.publishedDate.getTime();
+    });
+
+    this.filteredNewsItems = filtered;
+    
+    // Select first article if none selected and articles are available
+    if (this.filteredNewsItems.length > 0 && !this.selectedNewsItem) {
+      this.selectedNewsItem = this.filteredNewsItems[0];
+    }
+    
+    // If current selection is not in filtered results, select first one
+    if (this.selectedNewsItem && !this.filteredNewsItems.find(item => item.id === this.selectedNewsItem?.id)) {
+      this.selectedNewsItem = this.filteredNewsItems.length > 0 ? this.filteredNewsItems[0] : null;
+    }
   }
 
   /**
@@ -161,10 +188,48 @@ export class PoliticsComponent implements OnInit {
   }
 
   /**
-   * Select a news item to show details
+   * Select a news item to show details and increment view count
    */
-  selectNewsItem(item: NewsItem): void {
+  async selectNewsItem(item: NewsItem): Promise<void> {
     this.selectedNewsItem = item;
+    
+    // Increment view count
+    try {
+      await this.incrementViewCount(item);
+    } catch (error) {
+      console.error('Error incrementing view count:', error);
+      // Continue even if view tracking fails
+    }
+  }
+
+  /**
+   * Increment view count for an article
+   */
+  private async incrementViewCount(item: NewsItem): Promise<void> {
+    // Update local count immediately for better UX
+    const newsItemIndex = this.allNewsItems.findIndex(news => news.id === item.id);
+    if (newsItemIndex !== -1) {
+      this.allNewsItems[newsItemIndex].viewed += 1;
+      
+      // Update filtered items as well
+      const filteredIndex = this.filteredNewsItems.findIndex(news => news.id === item.id);
+      if (filteredIndex !== -1) {
+        this.filteredNewsItems[filteredIndex].viewed += 1;
+      }
+      
+      // Update selected item
+      if (this.selectedNewsItem && this.selectedNewsItem.id === item.id) {
+        this.selectedNewsItem.viewed += 1;
+      }
+    }
+
+    // Update in Firestore
+    if (item.id && !item.id.startsWith('temp_')) {
+      await this.firebaseService.updateNewsArticleViews(item.id, item.viewed + 1);
+    }
+    
+    // Re-sort the articles to reflect the new view count
+    this.applyFilters();
   }
 
   /**

@@ -34,6 +34,7 @@ export interface NewsArticle {
   source: string;
   category: string;
   imageUrl?: string;
+  viewed?: number;
 }
 
 export type MapShapeType = 'circle' | 'polygon' | 'polyline' | 'rectangle';
@@ -176,8 +177,17 @@ export class FirebaseService {
     const newsRef = collection(db, 'news_articles');
     const docRef = await addDoc(newsRef, {
       ...article,
-      createdAt: new Date()
+      createdAt: new Date(),
+      viewed: 0
     });
     return docRef.id;
+  }
+
+  async updateNewsArticleViews(articleId: string, viewCount: number): Promise<void> {
+    const db = getFirestore();
+    const articleRef = doc(db, 'news_articles', articleId);
+    await updateDoc(articleRef, {
+      viewed: viewCount
+    });
   }
 }
