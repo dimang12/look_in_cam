@@ -1,0 +1,11 @@
+{"users": [
+{
+  "localId": "95nHrwLAMTUAdVpTDxE9KsDiDqe2",
+  "email": "dimang12@gmail.com",
+  "emailVerified": false,
+  "passwordHash": "8trwLs0g2S+JTcIcnvWcWMDuuITg4MzY+DUAnxcTKv0Cy2ONC3O4pXOPegnNYkVqYiQV6BooNAzEFdkuYIWTwQ==",
+  "salt": "FzaKRM0RMhHv0w==",
+  "lastSignedInAt": "1746981561417",
+  "createdAt": "1746901008026",
+  "providerUserInfo": []
+}]}
