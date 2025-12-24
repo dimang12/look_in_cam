@@ -25,15 +25,19 @@ export interface CrimeReport {
 }
 
 export interface NewsArticle {
-  id?: string;
+  doc_id?: string;
   title: string;
-  summary: string;
+  url: string;
+  source_url: string;
+  date?: any;
+  snippet: string;
   content: string;
-  publishedDate?: any;
-  createdAt?: any;
-  source: string;
-  category: string;
-  imageUrl?: string;
+  relevant_to_border_conflict?: boolean;
+  summary_md?: string;
+  political_movement?: string;
+  cambodia_impact?: string;
+  khmer_translation?: string;
+  analyzed_at?: string;
   viewed?: number;
 }
 
@@ -152,15 +156,15 @@ export class FirebaseService {
     
     snap.forEach((doc: QueryDocumentSnapshot) => {
       articles.push({ 
-        id: doc.id, 
-        ...(doc.data() as Omit<NewsArticle, 'id'>) 
+        doc_id: doc.id, 
+        ...(doc.data() as Omit<NewsArticle, 'doc_id'>) 
       });
     });
     
-    // Sort by publishedDate or createdAt (newest first)
+    // Sort by date or analyzed_at (newest first)
     articles.sort((a, b) => {
-      const dateA = a.publishedDate || a.createdAt || new Date(0);
-      const dateB = b.publishedDate || b.createdAt || new Date(0);
+      const dateA = a.date || a.analyzed_at || new Date(0);
+      const dateB = b.date || b.analyzed_at || new Date(0);
       
       // Handle Firestore timestamps
       const timestampA = dateA && typeof dateA.toDate === 'function' ? dateA.toDate() : new Date(dateA);
@@ -172,12 +176,12 @@ export class FirebaseService {
     return articles;
   }
 
-  async addNewsArticle(article: Omit<NewsArticle, 'id'>): Promise<string> {
+  async addNewsArticle(article: Omit<NewsArticle, 'doc_id'>): Promise<string> {
     const db = getFirestore();
     const newsRef = collection(db, 'news_articles');
     const docRef = await addDoc(newsRef, {
       ...article,
-      createdAt: new Date(),
+      analyzed_at: new Date(),
       viewed: 0
     });
     return docRef.id;

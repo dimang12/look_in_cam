@@ -9,6 +9,32 @@
   overflow: hidden;
 }
 
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.text-wrap {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.title-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .prose {
   line-height: 1.75;
 }
@@ -66,4 +92,169 @@ mat-list-item:hover {
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* Markdown content styling */
+.markdown-content {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.markdown-content ::ng-deep h1,
+.markdown-content ::ng-deep h2,
+.markdown-content ::ng-deep h3,
+.markdown-content ::ng-deep h4,
+.markdown-content ::ng-deep h5,
+.markdown-content ::ng-deep h6 {
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  line-height: 1.25;
+  color: #1f2937;
+}
+
+.markdown-content ::ng-deep h1 { font-size: 2rem; }
+.markdown-content ::ng-deep h2 { font-size: 1.75rem; }
+.markdown-content ::ng-deep h3 { font-size: 1.5rem; }
+.markdown-content ::ng-deep h4 { font-size: 1.25rem; }
+.markdown-content ::ng-deep h5 { font-size: 1.125rem; }
+.markdown-content ::ng-deep h6 { font-size: 1rem; }
+
+.markdown-content ::ng-deep p {
+  margin-bottom: 1.25rem;
+  line-height: 1.7;
+  color: #374151;
+}
+
+.markdown-content ::ng-deep strong {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.markdown-content ::ng-deep em {
+  font-style: italic;
+}
+
+.markdown-content ::ng-deep ul,
+.markdown-content ::ng-deep ol {
+  margin: 1.25rem 0;
+  padding-left: 1.5rem;
+}
+
+.markdown-content ::ng-deep li {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+.markdown-content ::ng-deep blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  color: #6b7280;
+  background-color: #f9fafb;
+  padding: 1rem;
+  border-radius: 0.375rem;
+}
+
+.markdown-content ::ng-deep code {
+  background-color: #f3f4f6;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: #dc2626;
+}
+
+.markdown-content ::ng-deep pre {
+  background-color: #1f2937;
+  color: #f9fafb;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+.markdown-content ::ng-deep pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+}
+
+.markdown-content ::ng-deep a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.markdown-content ::ng-deep a:hover {
+  color: #1d4ed8;
+}
+
+.markdown-content ::ng-deep hr {
+  border: none;
+  height: 1px;
+  background-color: #e5e7eb;
+  margin: 2rem 0;
+}
+
+.markdown-content ::ng-deep table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.5rem 0;
+}
+
+.markdown-content ::ng-deep th,
+.markdown-content ::ng-deep td {
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.markdown-content ::ng-deep th {
+  background-color: #f3f4f6;
+  font-weight: 600;
+}
+
+.markdown-content ::ng-deep img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+/* Additional text wrapping for all content */
+.prose {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.prose p {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Ensure markdown content wraps properly */
+.markdown-content {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.markdown-content ::ng-deep p,
+.markdown-content ::ng-deep div,
+.markdown-content ::ng-deep span {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Handle long URLs and links */
+.markdown-content ::ng-deep a {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-all;
+}
+
+/* Ensure proper text wrapping for all elements */
+* {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }

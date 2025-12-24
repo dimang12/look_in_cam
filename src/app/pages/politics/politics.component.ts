@@ -5,12 +5,17 @@ import { FirebaseService } from '../../services/firebase.service';
 export interface NewsItem {
   id: string;
   title: string;
-  summary: string;
+  url: string;
+  source_url: string;
+  date: Date;
+  snippet: string;
   content: string;
-  publishedDate: Date;
-  source: string;
-  category: string;
-  imageUrl?: string;
+  summary_md?: string;
+  political_movement?: string;
+  cambodia_impact?: string;
+  khmer_translation?: string;
+  relevant_to_border_conflict?: boolean;
+  analyzed_at?: string;
   viewed: number;
 }
 
@@ -57,18 +62,34 @@ export class PoliticsComponent implements OnInit {
       
       // Transform Firestore data to NewsItem format
       this.allNewsItems = articles.map(article => ({
-        id: article.id || `temp_${Date.now()}_${Math.random()}`,
+        id: article.doc_id || `temp_${Date.now()}_${Math.random()}`,
         title: article.title || '',
-        summary: article.summary || '',
+        url: article.url || '',
+        source_url: article.source_url || '',
+        snippet: article.snippet || '',
         content: article.content || '',
-        publishedDate: this.parseDate(article.publishedDate || article.createdAt),
-        source: article.source || 'Unknown Source',
-        category: article.category || 'General',
-        imageUrl: article.imageUrl,
+        date: this.parseDate(article.date || article.analyzed_at),
+        summary_md: article.summary_md,
+        political_movement: article.political_movement,
+        cambodia_impact: article.cambodia_impact,
+        khmer_translation: article.khmer_translation,
+        relevant_to_border_conflict: article.relevant_to_border_conflict,
+        analyzed_at: article.analyzed_at,
         viewed: article.viewed || 0
       }));
 
       console.log(`Loaded ${this.allNewsItems.length} news articles from Firestore`);
+      
+      // Debug: Log first article to see structure
+      if (this.allNewsItems.length > 0) {
+        console.log('First article structure:', this.allNewsItems[0]);
+        console.log('Fields check:', {
+          summary_md: this.allNewsItems[0].summary_md,
+          political_movement: this.allNewsItems[0].political_movement,
+          cambodia_impact: this.allNewsItems[0].cambodia_impact,
+          khmer_translation: this.allNewsItems[0].khmer_translation
+        });
+      }
       
       // Apply filters after loading
       this.applyFilters();
@@ -137,14 +158,14 @@ export class PoliticsComponent implements OnInit {
         break;
     }
 
-    filtered = filtered.filter(item => item.publishedDate >= timeThreshold);
+    filtered = filtered.filter(item => item.date >= timeThreshold);
 
     // Apply search filter
     if (this.searchQuery.trim()) {
       const query = this.searchQuery.toLowerCase();
       filtered = filtered.filter(item => 
         item.title.toLowerCase().includes(query) ||
-        item.summary.toLowerCase().includes(query) ||
+        item.snippet.toLowerCase().includes(query) ||
         item.content.toLowerCase().includes(query)
       );
     }
@@ -156,7 +177,7 @@ export class PoliticsComponent implements OnInit {
         return b.viewed - a.viewed;
       }
       // Then sort by published date (newest first)
-      return b.publishedDate.getTime() - a.publishedDate.getTime();
+      return b.date.getTime() - a.date.getTime();
     });
 
     this.filteredNewsItems = filtered;
@@ -206,26 +227,29 @@ export class PoliticsComponent implements OnInit {
    * Increment view count for an article
    */
   private async incrementViewCount(item: NewsItem): Promise<void> {
+    // Calculate the new view count
+    const newViewCount = item.viewed + 1;
+    
     // Update local count immediately for better UX
     const newsItemIndex = this.allNewsItems.findIndex(news => news.id === item.id);
     if (newsItemIndex !== -1) {
-      this.allNewsItems[newsItemIndex].viewed += 1;
+      this.allNewsItems[newsItemIndex].viewed = newViewCount;
       
       // Update filtered items as well
       const filteredIndex = this.filteredNewsItems.findIndex(news => news.id === item.id);
       if (filteredIndex !== -1) {
-        this.filteredNewsItems[filteredIndex].viewed += 1;
+        this.filteredNewsItems[filteredIndex].viewed = newViewCount;
       }
       
       // Update selected item
       if (this.selectedNewsItem && this.selectedNewsItem.id === item.id) {
-        this.selectedNewsItem.viewed += 1;
+        this.selectedNewsItem.viewed = newViewCount;
       }
     }
 
-    // Update in Firestore
+    // Update in Firestore with the new count
     if (item.id && !item.id.startsWith('temp_')) {
-      await this.firebaseService.updateNewsArticleViews(item.id, item.viewed + 1);
+      await this.firebaseService.updateNewsArticleViews(item.id, newViewCount);
     }
     
     // Re-sort the articles to reflect the new view count
@@ -237,6 +261,23 @@ export class PoliticsComponent implements OnInit {
    */
   closeNewsDetail(): void {
     this.selectedNewsItem = null;
+  }
+
+  /**
+   * Extract source name from URL
+   */
+  getSourceName(sourceUrl: string): string {
+    if (!sourceUrl) return 'Unknown Source';
+    
+    try {
+      const url = new URL(sourceUrl);
+      const hostname = url.hostname.replace('www.', '');
+      
+      // Capitalize first letter of domain name
+      return hostname.charAt(0).toUpperCase() + hostname.slice(1);
+    } catch (error) {
+      return 'Unknown Source';
+    }
   }
 
   /**

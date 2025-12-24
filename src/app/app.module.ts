@@ -31,6 +31,8 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatListModule } from '@angular/material/list';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MarkdownModule } from 'ngx-markdown';
+import { HttpClientModule } from '@angular/common/http';
 
 // Firebase: use the modular SDK directly (avoid @angular/fire if its published versions mismatch)
 import { initializeApp } from 'firebase/app';
@@ -65,6 +67,7 @@ if (environment?.firebase && environment.firebase.projectId) {
     FormsModule,
     CommonModule,
     RouterModule,
+    HttpClientModule,
     AppRoutingModule,
     GoogleMapsModule,
     MatFormFieldModule,
@@ -77,6 +80,7 @@ if (environment?.firebase && environment.firebase.projectId) {
     MatListModule,
     MatTabsModule,
     MatProgressSpinnerModule,
+    MarkdownModule.forRoot(),
   ],
   providers: [
   ],
