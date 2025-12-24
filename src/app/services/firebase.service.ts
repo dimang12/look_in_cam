@@ -24,6 +24,23 @@ export interface CrimeReport {
   attachments: string[];
 }
 
+export interface NewsArticle {
+  doc_id?: string;
+  title: string;
+  url: string;
+  source_url: string;
+  date?: any;
+  snippet: string;
+  content: string;
+  relevant_to_border_conflict?: boolean;
+  summary_md?: string;
+  political_movement?: string;
+  cambodia_impact?: string;
+  khmer_translation?: string;
+  analyzed_at?: string;
+  viewed?: number;
+}
+
 export type MapShapeType = 'circle' | 'polygon' | 'polyline' | 'rectangle';
 export interface MapShapeRecord {
   id?: string;
@@ -128,5 +145,53 @@ export class FirebaseService {
     const items: MapShapeRecord[] = [];
     snap.forEach((doc: QueryDocumentSnapshot) => items.push({ id: doc.id, ...(doc.data() as any) }));
     return items;
+  }
+
+  // News articles methods
+  async getNewsArticles(): Promise<NewsArticle[]> {
+    const db = getFirestore();
+    const newsRef = collection(db, 'news_articles');
+    const snap = await getDocs(newsRef);
+    const articles: NewsArticle[] = [];
+    
+    snap.forEach((doc: QueryDocumentSnapshot) => {
+      articles.push({ 
+        doc_id: doc.id, 
+        ...(doc.data() as Omit<NewsArticle, 'doc_id'>) 
+      });
+    });
+    
+    // Sort by date or analyzed_at (newest first)
+    articles.sort((a, b) => {
+      const dateA = a.date || a.analyzed_at || new Date(0);
+      const dateB = b.date || b.analyzed_at || new Date(0);
+      
+      // Handle Firestore timestamps
+      const timestampA = dateA && typeof dateA.toDate === 'function' ? dateA.toDate() : new Date(dateA);
+      const timestampB = dateB && typeof dateB.toDate === 'function' ? dateB.toDate() : new Date(dateB);
+      
+      return timestampB.getTime() - timestampA.getTime();
+    });
+    
+    return articles;
+  }
+
+  async addNewsArticle(article: Omit<NewsArticle, 'doc_id'>): Promise<string> {
+    const db = getFirestore();
+    const newsRef = collection(db, 'news_articles');
+    const docRef = await addDoc(newsRef, {
+      ...article,
+      analyzed_at: new Date(),
+      viewed: 0
+    });
+    return docRef.id;
+  }
+
+  async updateNewsArticleViews(articleId: string, viewCount: number): Promise<void> {
+    const db = getFirestore();
+    const articleRef = doc(db, 'news_articles', articleId);
+    await updateDoc(articleRef, {
+      viewed: viewCount
+    });
   }
 }

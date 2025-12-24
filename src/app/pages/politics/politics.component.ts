@@ -1,15 +1,22 @@
 import { Component, OnInit } from '@angular/core';
 import { DateRangeMode } from '../../components/calendar-controls/calendar-controls.component';
+import { FirebaseService } from '../../services/firebase.service';
 
 export interface NewsItem {
   id: string;
   title: string;
-  summary: string;
+  url: string;
+  source_url: string;
+  date: Date;
+  snippet: string;
   content: string;
-  publishedDate: Date;
-  source: string;
-  category: string;
-  imageUrl?: string;
+  summary_md?: string;
+  political_movement?: string;
+  cambodia_impact?: string;
+  khmer_translation?: string;
+  relevant_to_border_conflict?: boolean;
+  analyzed_at?: string;
+  viewed: number;
 }
 
 @Component({
@@ -28,41 +35,105 @@ export class PoliticsComponent implements OnInit {
   selectedDate: Date = new Date();
 
   // News data
-  allNewsItems: NewsItem[] = [
-    {
-      id: '1',
-      title: 'សភាជាតិបានអនុម័តច្បាប់ថ្មីស្តីពីការបោះឆ្នោត',
-      summary: 'សភាជាតិបានអនុម័តច្បាប់ថ្មីមួយដែលនឹងផ្លាស់ប្តូរវិធីសាស្រ្តបោះឆ្នោត',
-      content: 'នេះជាមាតិកាលម្អិតនៃការអនុម័តច្បាប់ថ្មីស្តីពីការបោះឆ្នោត។ ច្បាប់នេះនឹងមានប្រសិទ្ធភាពចាប់ពីឆ្នាំ២០២៦។ វាបានកំណត់នូវវិធីសាស្រ្តថ្មីសម្រាប់ការបោះឆ្នោតជាតិ និងការបោះឆ្នោតក្នុងស្រុក។',
-      publishedDate: new Date('2025-12-15'),
-      source: 'Cambodia News Network',
-      category: 'រដ្ឋាភិបាល'
-    },
-    {
-      id: '2',
-      title: 'នាយករដ្ឋមន្ត្រីបានជួបជាមួយប្រតិភូអន្តរជាតិ',
-      summary: 'កិច្ចប្រជុំដ៏សំខាន់មួយបានធ្វើឡើងនៅវិមានសន្តិភាព',
-      content: 'នាយករដ្ឋមន្ត្រីបានធ្វើកិច្ចប្រជុំជាមួយប្រតិភូអន្តរជាតិ ដើម្បីពិភាក្សាអំពីសហការភាពក្នុងតំបន់។ កិច្ចប្រជុំនេះបានផ្តោតលើការអភិវឌ្ឍន៍សេដ្ឋកិច្ច និងការធានាសន្តិភាពក្នុងតំបន់។',
-      publishedDate: new Date('2025-12-14'),
-      source: 'National Press Agency',
-      category: 'អន្តរជាតិ'
-    },
-    {
-      id: '3',
-      title: 'គណៈកម្មការថ្មីត្រូវបានបង្កើតឡើង',
-      summary: 'គណៈកម្មការសម្រាប់ការកែទម្រង់រដ្ឋបាលត្រូវបានបង្កើតឡើង',
-      content: 'រដ្ឋាភិបាលបានប្រកាសបង្កើតគណៈកម្មការថ្មីមួយដើម្បីធ្វើការកែទម្រង់រដ្ឋបាលសាធារណៈ។ គណៈកម្មការនេះនឹងទទួលបន្ទុកក្នុងការធ្វើឱ្យប្រសើរឡើងនូវប្រសិទ្ធភាពនៃសេវាកម្មសាធារណៈ។',
-      publishedDate: new Date('2025-12-13'),
-      source: 'Government Herald',
-      category: 'រដ្ឋាភិបាល'
-    }
-  ];
-
+  allNewsItems: NewsItem[] = [];
   filteredNewsItems: NewsItem[] = [];
   selectedNewsItem: NewsItem | null = null;
 
+  // Loading state
+  loading = false;
+  error: string | null = null;
+
+  constructor(private firebaseService: FirebaseService) {}
+
   ngOnInit(): void {
-    this.applyFilters();
+    this.loadNewsArticles();
+  }
+
+  /**
+   * Load news articles from Firestore collection
+   */
+  async loadNewsArticles(): Promise<void> {
+    this.loading = true;
+    this.error = null;
+
+    try {
+      // Get news articles from Firestore
+      const articles = await this.firebaseService.getNewsArticles();
+      
+      // Transform Firestore data to NewsItem format
+      this.allNewsItems = articles.map(article => ({
+        id: article.doc_id || `temp_${Date.now()}_${Math.random()}`,
+        title: article.title || '',
+        url: article.url || '',
+        source_url: article.source_url || '',
+        snippet: article.snippet || '',
+        content: article.content || '',
+        date: this.parseDate(article.date || article.analyzed_at),
+        summary_md: article.summary_md,
+        political_movement: article.political_movement,
+        cambodia_impact: article.cambodia_impact,
+        khmer_translation: article.khmer_translation,
+        relevant_to_border_conflict: article.relevant_to_border_conflict,
+        analyzed_at: article.analyzed_at,
+        viewed: article.viewed || 0
+      }));
+
+      console.log(`Loaded ${this.allNewsItems.length} news articles from Firestore`);
+      
+      // Debug: Log first article to see structure
+      if (this.allNewsItems.length > 0) {
+        console.log('First article structure:', this.allNewsItems[0]);
+        console.log('Fields check:', {
+          summary_md: this.allNewsItems[0].summary_md,
+          political_movement: this.allNewsItems[0].political_movement,
+          cambodia_impact: this.allNewsItems[0].cambodia_impact,
+          khmer_translation: this.allNewsItems[0].khmer_translation
+        });
+      }
+      
+      // Apply filters after loading
+      this.applyFilters();
+
+      // Select first article by default if not already selected
+      if (this.filteredNewsItems.length > 0 && !this.selectedNewsItem) {
+        this.selectedNewsItem = this.filteredNewsItems[0];
+      }
+
+    } catch (error) {
+      console.error('Error loading news articles:', error);
+      this.error = 'Failed to load news articles. Please try again later.';
+      
+      // Fallback to empty array
+      this.allNewsItems = [];
+      this.filteredNewsItems = [];
+      
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  /**
+   * Parse date from various formats
+   */
+  private parseDate(dateValue: any): Date {
+    if (!dateValue) return new Date();
+    
+    // Handle Firestore Timestamp
+    if (dateValue && typeof dateValue.toDate === 'function') {
+      return dateValue.toDate();
+    }
+    
+    // Handle string or number dates
+    if (typeof dateValue === 'string' || typeof dateValue === 'number') {
+      return new Date(dateValue);
+    }
+    
+    // Handle Date objects
+    if (dateValue instanceof Date) {
+      return dateValue;
+    }
+    
+    return new Date();
   }
 
   /**
@@ -87,19 +158,39 @@ export class PoliticsComponent implements OnInit {
         break;
     }
 
-    filtered = filtered.filter(item => item.publishedDate >= timeThreshold);
+    filtered = filtered.filter(item => item.date >= timeThreshold);
 
     // Apply search filter
     if (this.searchQuery.trim()) {
       const query = this.searchQuery.toLowerCase();
       filtered = filtered.filter(item => 
         item.title.toLowerCase().includes(query) ||
-        item.summary.toLowerCase().includes(query) ||
+        item.snippet.toLowerCase().includes(query) ||
         item.content.toLowerCase().includes(query)
       );
     }
 
-    this.filteredNewsItems = filtered.sort((a, b) => b.publishedDate.getTime() - a.publishedDate.getTime());
+    // Sort by viewed count (most viewed first), then by published date (newest first)
+    filtered.sort((a, b) => {
+      // First sort by viewed count (descending)
+      if (b.viewed !== a.viewed) {
+        return b.viewed - a.viewed;
+      }
+      // Then sort by published date (newest first)
+      return b.date.getTime() - a.date.getTime();
+    });
+
+    this.filteredNewsItems = filtered;
+    
+    // Select first article if none selected and articles are available
+    if (this.filteredNewsItems.length > 0 && !this.selectedNewsItem) {
+      this.selectedNewsItem = this.filteredNewsItems[0];
+    }
+    
+    // If current selection is not in filtered results, select first one
+    if (this.selectedNewsItem && !this.filteredNewsItems.find(item => item.id === this.selectedNewsItem?.id)) {
+      this.selectedNewsItem = this.filteredNewsItems.length > 0 ? this.filteredNewsItems[0] : null;
+    }
   }
 
   /**
@@ -118,10 +209,51 @@ export class PoliticsComponent implements OnInit {
   }
 
   /**
-   * Select a news item to show details
+   * Select a news item to show details and increment view count
    */
-  selectNewsItem(item: NewsItem): void {
+  async selectNewsItem(item: NewsItem): Promise<void> {
     this.selectedNewsItem = item;
+    
+    // Increment view count
+    try {
+      await this.incrementViewCount(item);
+    } catch (error) {
+      console.error('Error incrementing view count:', error);
+      // Continue even if view tracking fails
+    }
+  }
+
+  /**
+   * Increment view count for an article
+   */
+  private async incrementViewCount(item: NewsItem): Promise<void> {
+    // Calculate the new view count
+    const newViewCount = item.viewed + 1;
+    
+    // Update local count immediately for better UX
+    const newsItemIndex = this.allNewsItems.findIndex(news => news.id === item.id);
+    if (newsItemIndex !== -1) {
+      this.allNewsItems[newsItemIndex].viewed = newViewCount;
+      
+      // Update filtered items as well
+      const filteredIndex = this.filteredNewsItems.findIndex(news => news.id === item.id);
+      if (filteredIndex !== -1) {
+        this.filteredNewsItems[filteredIndex].viewed = newViewCount;
+      }
+      
+      // Update selected item
+      if (this.selectedNewsItem && this.selectedNewsItem.id === item.id) {
+        this.selectedNewsItem.viewed = newViewCount;
+      }
+    }
+
+    // Update in Firestore with the new count
+    if (item.id && !item.id.startsWith('temp_')) {
+      await this.firebaseService.updateNewsArticleViews(item.id, newViewCount);
+    }
+    
+    // Re-sort the articles to reflect the new view count
+    this.applyFilters();
   }
 
   /**
@@ -129,6 +261,23 @@ export class PoliticsComponent implements OnInit {
    */
   closeNewsDetail(): void {
     this.selectedNewsItem = null;
+  }
+
+  /**
+   * Extract source name from URL
+   */
+  getSourceName(sourceUrl: string): string {
+    if (!sourceUrl) return 'Unknown Source';
+    
+    try {
+      const url = new URL(sourceUrl);
+      const hostname = url.hostname.replace('www.', '');
+      
+      // Capitalize first letter of domain name
+      return hostname.charAt(0).toUpperCase() + hostname.slice(1);
+    } catch (error) {
+      return 'Unknown Source';
+    }
   }
 
   /**
