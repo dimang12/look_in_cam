@@ -1,0 +1,33 @@
+.admin-layout {
+  height: calc(100vh - 70px);
+  overflow: hidden;
+}
+
+.sidenav-container {
+  height: 100%;
+}
+
+.admin-sidenav {
+  width: 280px;
+  border-right: 1px solid #e0e0e0;
+  background-color: #fafafa;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  background-color: #f5f5f5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-sidenav {
+    width: 260px;
+  }
+}

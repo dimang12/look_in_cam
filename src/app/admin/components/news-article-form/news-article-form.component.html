@@ -1,0 +1,97 @@
+<div class="form-container">
+  <h2 mat-dialog-title>
+    <mat-icon>{{ isEdit ? 'edit' : 'add' }}</mat-icon>
+    {{ isEdit ? 'Edit Article' : 'Create New Article' }}
+  </h2>
+
+  <div mat-dialog-content>
+    <form [formGroup]="articleForm" (ngSubmit)="onSubmit()" class="article-form">
+      
+      <!-- Title -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Title *</mat-label>
+        <input matInput formControlName="title" placeholder="Enter article title">
+        <mat-error>{{ getTitleErrorMessage() }}</mat-error>
+      </mat-form-field>
+
+      <!-- Excerpt -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Excerpt *</mat-label>
+        <textarea matInput formControlName="excerpt" rows="3" 
+                  placeholder="Brief summary of the article (20-500 characters)"></textarea>
+        <mat-hint align="end">
+          {{ articleForm.get('excerpt')?.value?.length || 0 }}/500
+        </mat-hint>
+        <mat-error>{{ getExcerptErrorMessage() }}</mat-error>
+      </mat-form-field>
+
+      <!-- Author and Category Row -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Author *</mat-label>
+          <input matInput formControlName="author" placeholder="Author name">
+          <mat-error>{{ getAuthorErrorMessage() }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Category *</mat-label>
+          <mat-select formControlName="category">
+            <mat-option *ngFor="let category of categories" [value]="category">
+              {{ category }}
+            </mat-option>
+          </mat-select>
+          <mat-error>{{ getCategoryErrorMessage() }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Status and Featured Image Row -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Status</mat-label>
+          <mat-select formControlName="status">
+            <mat-option *ngFor="let status of statusOptions" [value]="status.value">
+              {{ status.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Featured Image URL</mat-label>
+          <input matInput formControlName="featuredImage" placeholder="https://example.com/image.jpg">
+        </mat-form-field>
+      </div>
+
+      <!-- Tags -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Tags</mat-label>
+        <input matInput formControlName="tags" placeholder="technology, news, breaking (comma separated)">
+        <mat-hint>Separate multiple tags with commas</mat-hint>
+      </mat-form-field>
+
+      <!-- Content -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Content *</mat-label>
+        <textarea matInput formControlName="content" rows="12" 
+                  placeholder="Write your article content here..."></textarea>
+        <mat-hint align="end">
+          {{ articleForm.get('content')?.value?.length || 0 }} characters (minimum 50)
+        </mat-hint>
+        <mat-error>{{ getContentErrorMessage() }}</mat-error>
+      </mat-form-field>
+
+    </form>
+  </div>
+
+  <div mat-dialog-actions align="end" class="form-actions">
+    <button mat-button (click)="onCancel()" [disabled]="loading">
+      Cancel
+    </button>
+    <button mat-raised-button color="primary" 
+            (click)="onSubmit()" 
+            [disabled]="!articleForm.valid || loading">
+      <mat-spinner diameter="16" *ngIf="loading"></mat-spinner>
+      <span *ngIf="!loading">{{ isEdit ? 'Update Article' : 'Create Article' }}</span>
+      <span *ngIf="loading">{{ isEdit ? 'Updating...' : 'Creating...' }}</span>
+    </button>
+  </div>
+</div>

@@ -1,0 +1,178 @@
+  <div class="content-management-container">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">
+          <mat-icon class="title-icon">article</mat-icon>
+          Content Management
+        </h1>
+        <p class="page-subtitle">Manage articles, news, and announcements</p>
+      </div>
+      <button mat-raised-button color="primary" (click)="openContentDialog()">
+        <mat-icon>add</mat-icon>
+        Create Content
+      </button>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-row" *ngIf="contentItems.length > 0">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-header">
+            <mat-icon>library_books</mat-icon>
+            <span>Total</span>
+          </div>
+          <div class="stat-value">{{ getContentStats().total }}</div>
+        </mat-card-content>
+      </mat-card>
+      
+      <mat-card class="stat-card published">
+        <mat-card-content>
+          <div class="stat-header">
+            <mat-icon>publish</mat-icon>
+            <span>Published</span>
+          </div>
+          <div class="stat-value">{{ getContentStats().published }}</div>
+        </mat-card-content>
+      </mat-card>
+      
+      <mat-card class="stat-card draft">
+        <mat-card-content>
+          <div class="stat-header">
+            <mat-icon>draft</mat-icon>
+            <span>Draft</span>
+          </div>
+          <div class="stat-value">{{ getContentStats().draft }}</div>
+        </mat-card-content>
+      </mat-card>
+      
+      <mat-card class="stat-card archived">
+        <mat-card-content>
+          <div class="stat-header">
+            <mat-icon>archive</mat-icon>
+            <span>Archived</span>
+          </div>
+          <div class="stat-value">{{ getContentStats().archived }}</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Filters -->
+    <mat-card class="filter-card">
+      <mat-card-content>
+        <div class="filter-row">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search content</mat-label>
+            <input matInput [(ngModel)]="searchQuery" (input)="onSearchChange()" placeholder="Title, author, type...">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+          
+          <div class="filter-chips">
+            <mat-chip-listbox aria-label="Status filter" [selectable]="true">
+              <mat-chip-option 
+                [selected]="selectedFilter === 'all'"
+                (click)="onFilterChange('all')">
+                All
+              </mat-chip-option>
+              <mat-chip-option 
+                [selected]="selectedFilter === 'published'"
+                (click)="onFilterChange('published')">
+                Published
+              </mat-chip-option>
+              <mat-chip-option 
+                [selected]="selectedFilter === 'draft'"
+                (click)="onFilterChange('draft')">
+                Draft
+              </mat-chip-option>
+              <mat-chip-option 
+                [selected]="selectedFilter === 'archived'"
+                (click)="onFilterChange('archived')">
+                Archived
+              </mat-chip-option>
+            </mat-chip-listbox>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Content List -->
+    <div class="content-grid" *ngIf="!loading && filteredContent.length > 0">
+      <mat-card class="content-card" *ngFor="let content of filteredContent">
+        <mat-card-header>
+          <mat-icon mat-card-avatar [class]="'type-icon ' + content.type">
+            {{ getTypeIcon(content.type) }}
+          </mat-icon>
+          <mat-card-title class="content-title">{{ content.title }}</mat-card-title>
+          <mat-card-subtitle>
+            <span class="content-meta">
+              {{ content.author }} • {{ formatDate(content.createdAt) }}
+            </span>
+          </mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="content-info">
+            <div class="content-badges">
+              <span class="type-badge" [class]="content.type">{{ content.type | titlecase }}</span>
+              <span class="status-badge" [class]="content.status">{{ content.status | titlecase }}</span>
+            </div>
+            <div class="view-count">
+              <mat-icon>visibility</mat-icon>
+              <span>{{ content.viewCount | number }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+        
+        <mat-card-actions align="end">
+          <button mat-button [matMenuTriggerFor]="statusMenu">
+            <mat-icon>swap_horiz</mat-icon>
+            Status
+          </button>
+          <mat-menu #statusMenu="matMenu">
+            <button mat-menu-item (click)="updateContentStatus(content, 'draft')" [disabled]="content.status === 'draft'">
+              <mat-icon>draft</mat-icon>
+              <span>Draft</span>
+            </button>
+            <button mat-menu-item (click)="updateContentStatus(content, 'published')" [disabled]="content.status === 'published'">
+              <mat-icon>publish</mat-icon>
+              <span>Publish</span>
+            </button>
+            <button mat-menu-item (click)="updateContentStatus(content, 'archived')" [disabled]="content.status === 'archived'">
+              <mat-icon>archive</mat-icon>
+              <span>Archive</span>
+            </button>
+          </mat-menu>
+          
+          <button mat-icon-button (click)="openContentDialog(content)" color="primary">
+            <mat-icon>edit</mat-icon>
+          </button>
+          
+          <button mat-icon-button (click)="deleteContent(content)" color="warn">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading content...</p>
+    </div>
+
+    <!-- No Data State -->
+    <div *ngIf="!loading && filteredContent.length === 0" class="no-data-container">
+      <mat-icon class="no-data-icon">article</mat-icon>
+      <h3>No Content Found</h3>
+      <p *ngIf="searchQuery || selectedFilter !== 'all'">
+        Try adjusting your filters or search terms
+      </p>
+      <p *ngIf="!searchQuery && selectedFilter === 'all'">
+        Start by creating your first content item
+      </p>
+      <button mat-raised-button color="primary" (click)="openContentDialog()">
+        <mat-icon>add</mat-icon>
+        Create Content
+      </button>
+    </div>
+  </div>

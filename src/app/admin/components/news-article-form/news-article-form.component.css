@@ -1,0 +1,125 @@
+.form-container {
+  max-width: 100%;
+  padding: 0;
+  min-height: 500px;
+}
+
+h2[mat-dialog-title] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  color: #333;
+  font-weight: 500;
+  padding: 0 24px;
+}
+
+h2[mat-dialog-title] mat-icon {
+  color: #3f51b5;
+}
+
+/* Dialog content styling */
+::ng-deep .mat-mdc-dialog-content {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 0 24px !important;
+}
+
+.article-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0;
+  min-height: 400px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.half-width {
+  flex: 1;
+}
+
+/* Form field customizations */
+::ng-deep .mat-mdc-form-field {
+  margin-bottom: 0;
+}
+
+::ng-deep .mat-mdc-text-field-wrapper {
+  border-radius: 8px;
+}
+
+/* Content textarea */
+::ng-deep .mat-mdc-form-field textarea {
+  min-height: 200px;
+  resize: vertical;
+  font-family: 'Roboto', sans-serif;
+  line-height: 1.5;
+}
+
+/* Form actions */
+.form-actions {
+  padding: 16px 24px 0 24px;
+  gap: 12px;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 16px;
+}
+
+::ng-deep .mat-mdc-dialog-actions {
+  padding: 16px 0 !important;
+  margin: 0 !important;
+}
+
+.form-actions button {
+  min-width: 120px;
+}
+
+.form-actions mat-spinner {
+  margin-right: 8px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .half-width {
+    width: 100%;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .form-actions button {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+}
+
+/* Status-specific styling */
+::ng-deep .mat-mdc-option {
+  display: flex;
+  align-items: center;
+}
+
+/* Validation states */
+::ng-deep .mat-mdc-form-field-error {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+::ng-deep .mat-mdc-form-field-hint {
+  font-size: 12px;
+  color: #666;
+}

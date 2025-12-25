@@ -1,0 +1,39 @@
+<mat-toolbar class="admin-header" color="primary">
+  <div class="header-left">
+    <button mat-icon-button (click)="onToggleSidenav()">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <h1 class="header-title">Admin Portal</h1>
+  </div>
+  
+  <div class="header-spacer"></div>
+  
+  <div class="header-right">
+    <button mat-icon-button [matMenuTriggerFor]="userMenu">
+      <mat-icon>account_circle</mat-icon>
+    </button>
+    
+    <mat-menu #userMenu="matMenu" xPosition="before">
+      <div class="user-info-menu">
+        <div class="user-info">
+          <mat-icon>person</mat-icon>
+          <div class="user-details">
+            <span class="user-name">{{ currentUser?.username }}</span>
+            <span class="user-email">{{ currentUser?.email }}</span>
+          </div>
+        </div>
+        <mat-divider></mat-divider>
+      </div>
+      
+      <button mat-menu-item routerLink="/admin/settings">
+        <mat-icon>settings</mat-icon>
+        <span>Settings</span>
+      </button>
+      
+      <button mat-menu-item (click)="onLogout()">
+        <mat-icon>logout</mat-icon>
+        <span>Logout</span>
+      </button>
+    </mat-menu>
+  </div>
+</mat-toolbar>

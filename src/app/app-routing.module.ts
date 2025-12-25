@@ -9,7 +9,11 @@ const routes: Routes = [
   { path: 'dashboard', component: DashboardComponent },
   { path: 'maps', component: MapsComponent },
   { path: 'maps/:type', component: MapsComponent },
-  { path: 'politics', component: PoliticsComponent }
+  { path: 'politics', component: PoliticsComponent },
+  { 
+    path: 'admin', 
+    loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule)
+  }
 ];
 
 @NgModule({

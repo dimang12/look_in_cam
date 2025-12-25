@@ -1,0 +1,95 @@
+<div class="login-container">
+  <div class="login-card">
+    <mat-card>
+      <mat-card-header>
+        <div mat-card-avatar class="admin-avatar">
+          <mat-icon>admin_panel_settings</mat-icon>
+        </div>
+        <mat-card-title>Admin Portal</mat-card-title>
+        <mat-card-subtitle>{{ showCreateAdmin ? 'Create new admin account' : 'Please sign in to continue' }}</mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <!-- Login Form -->
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form" *ngIf="!showCreateAdmin">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" formControlName="email" placeholder="admin&#64;whollycity.com">
+            <mat-icon matSuffix>email</mat-icon>
+            <mat-error>{{ getEmailErrorMessage() }}</mat-error>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Password</mat-label>
+            <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" placeholder="Enter your password">
+            <mat-icon matSuffix (click)="hidePassword = !hidePassword" class="password-toggle">
+              {{ hidePassword ? 'visibility' : 'visibility_off' }}
+            </mat-icon>
+            <mat-error>{{ getPasswordErrorMessage() }}</mat-error>
+          </mat-form-field>
+          
+          <button 
+            mat-raised-button 
+            color="primary" 
+            type="submit" 
+            class="full-width login-button"
+            [disabled]="!loginForm.valid || loading">
+            <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+            <span *ngIf="!loading">Sign In</span>
+            <span *ngIf="loading">Signing In...</span>
+          </button>
+        </form>
+
+        <!-- Create Admin Form -->
+        <form [formGroup]="createAdminForm" (ngSubmit)="onCreateAdmin()" class="login-form" *ngIf="showCreateAdmin">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Display Name</mat-label>
+            <input matInput formControlName="displayName" placeholder="Enter full name">
+            <mat-icon matSuffix>person</mat-icon>
+            <mat-error>{{ getDisplayNameErrorMessage() }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" formControlName="email" placeholder="admin&#64;whollycity.com">
+            <mat-icon matSuffix>email</mat-icon>
+            <mat-error>{{ getEmailErrorMessage(createAdminForm) }}</mat-error>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Password</mat-label>
+            <input matInput [type]="hideCreatePassword ? 'password' : 'text'" formControlName="password" placeholder="Create secure password">
+            <mat-icon matSuffix (click)="hideCreatePassword = !hideCreatePassword" class="password-toggle">
+              {{ hideCreatePassword ? 'visibility' : 'visibility_off' }}
+            </mat-icon>
+            <mat-error>{{ getPasswordErrorMessage(createAdminForm) }}</mat-error>
+          </mat-form-field>
+          
+          <button 
+            mat-raised-button 
+            color="primary" 
+            type="submit" 
+            class="full-width login-button"
+            [disabled]="!createAdminForm.valid || createAdminLoading">
+            <mat-spinner diameter="20" *ngIf="createAdminLoading"></mat-spinner>
+            <span *ngIf="!createAdminLoading">Create Admin Account</span>
+            <span *ngIf="createAdminLoading">Creating Account...</span>
+          </button>
+        </form>
+      </mat-card-content>
+      
+      <mat-card-actions class="form-actions">
+        <button mat-button (click)="toggleCreateAdmin()" [disabled]="loading || createAdminLoading">
+          {{ showCreateAdmin ? 'Back to Login' : 'Create New Admin' }}
+        </button>
+      </mat-card-actions>
+      
+      <mat-card-footer class="login-footer">
+        <p class="demo-credentials">
+          <mat-icon>info</mat-icon>
+          Use your &#64;whollycity.com email for admin access
+        </p>
+      </mat-card-footer>
+    </mat-card>
+  </div>
+</div>

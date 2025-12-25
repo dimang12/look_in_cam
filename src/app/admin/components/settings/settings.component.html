@@ -1,0 +1,141 @@
+  <div class="settings-container">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">
+          <mat-icon class="title-icon">settings</mat-icon>
+          System Settings
+        </h1>
+        <p class="page-subtitle">Configure your application settings</p>
+      </div>
+      <div class="header-actions">
+        <button mat-button (click)="onResetSettings()" color="warn">
+          <mat-icon>restore</mat-icon>
+          Reset to Defaults
+        </button>
+        <button mat-raised-button color="primary" (click)="onSaveSettings()">
+          <mat-icon>save</mat-icon>
+          Save Settings
+        </button>
+      </div>
+    </div>
+
+    <!-- Settings Sections -->
+    <form [formGroup]="settingsForm" class="settings-form">
+      <div class="settings-sections">
+        <mat-card class="settings-section" *ngFor="let section of settingsSections">
+          <mat-card-header>
+            <mat-icon mat-card-avatar [class]="'section-icon'">{{ section.icon }}</mat-icon>
+            <mat-card-title>{{ section.title }}</mat-card-title>
+          </mat-card-header>
+          
+          <mat-card-content>
+            <div class="settings-list">
+              <div class="setting-item" *ngFor="let setting of section.settings">
+                <div class="setting-info">
+                  <label class="setting-label">{{ setting.label }}</label>
+                  <p class="setting-description">{{ setting.description }}</p>
+                </div>
+                
+                <div class="setting-control">
+                  <!-- Toggle Control -->
+                  <mat-slide-toggle 
+                    *ngIf="setting.type === 'toggle'"
+                    [formControlName]="setting.key"
+                    color="primary">
+                  </mat-slide-toggle>
+                  
+                  <!-- Input Control -->
+                  <mat-form-field 
+                    *ngIf="setting.type === 'input'"
+                    appearance="outline" 
+                    class="setting-input">
+                    <input matInput [formControlName]="setting.key">
+                  </mat-form-field>
+                  
+                  <!-- Select Control -->
+                  <mat-form-field 
+                    *ngIf="setting.type === 'select'"
+                    appearance="outline" 
+                    class="setting-select">
+                    <mat-select [formControlName]="setting.key">
+                      <mat-option 
+                        *ngFor="let option of setting.options" 
+                        [value]="option.value">
+                        {{ option.label }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </form>
+
+    <!-- Additional Settings -->
+    <mat-card class="settings-section">
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="section-icon">info</mat-icon>
+        <mat-card-title>System Information</mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="system-info">
+          <div class="info-row">
+            <span class="info-label">Application Version:</span>
+            <span class="info-value">1.0.0</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Last Updated:</span>
+            <span class="info-value">{{ currentDate | date:'medium' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Environment:</span>
+            <span class="info-value">Development</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Database Status:</span>
+            <span class="info-value status-connected">Connected</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Danger Zone -->
+    <mat-card class="settings-section danger-zone">
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="section-icon danger">warning</mat-icon>
+        <mat-card-title>Danger Zone</mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="danger-actions">
+          <div class="danger-item">
+            <div class="danger-info">
+              <h3>Clear All Data</h3>
+              <p>Remove all users, content, and reset the application to initial state.</p>
+            </div>
+            <button mat-raised-button color="warn" disabled>
+              <mat-icon>delete_forever</mat-icon>
+              Clear Data
+            </button>
+          </div>
+          
+          <mat-divider></mat-divider>
+          
+          <div class="danger-item">
+            <div class="danger-info">
+              <h3>Export Data</h3>
+              <p>Download a backup of all application data.</p>
+            </div>
+            <button mat-raised-button>
+              <mat-icon>download</mat-icon>
+              Export Data
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>

@@ -10,6 +10,7 @@ export interface NewsItem {
   date: Date;
   snippet: string;
   content: string;
+  status?: 'draft' | 'published' | 'archived';
   summary_md?: string;
   political_movement?: string;
   cambodia_impact?: string;
@@ -69,6 +70,7 @@ export class PoliticsComponent implements OnInit {
         snippet: article.snippet || '',
         content: article.content || '',
         date: this.parseDate(article.date || article.analyzed_at),
+        status: (article as any).status || 'draft',
         summary_md: article.summary_md,
         political_movement: article.political_movement,
         cambodia_impact: article.cambodia_impact,
@@ -77,19 +79,7 @@ export class PoliticsComponent implements OnInit {
         analyzed_at: article.analyzed_at,
         viewed: article.viewed || 0
       }));
-
-      console.log(`Loaded ${this.allNewsItems.length} news articles from Firestore`);
       
-      // Debug: Log first article to see structure
-      if (this.allNewsItems.length > 0) {
-        console.log('First article structure:', this.allNewsItems[0]);
-        console.log('Fields check:', {
-          summary_md: this.allNewsItems[0].summary_md,
-          political_movement: this.allNewsItems[0].political_movement,
-          cambodia_impact: this.allNewsItems[0].cambodia_impact,
-          khmer_translation: this.allNewsItems[0].khmer_translation
-        });
-      }
       
       // Apply filters after loading
       this.applyFilters();
@@ -142,23 +132,12 @@ export class PoliticsComponent implements OnInit {
   applyFilters(): void {
     let filtered = [...this.allNewsItems];
 
-    // Apply time filter
-    const now = new Date();
-    const timeThreshold = new Date();
-    
-    switch (this.selectedTimeFilter) {
-      case 'day':
-        timeThreshold.setDate(now.getDate() - 1);
-        break;
-      case 'week':
-        timeThreshold.setDate(now.getDate() - 7);
-        break;
-      case 'month':
-        timeThreshold.setMonth(now.getMonth() - 1);
-        break;
-    }
+    // Apply date range filter based on calendar controls
+    const { startDate, endDate } = this.getCurrentRange();
+    filtered = filtered.filter(item => item.date >= startDate && item.date < endDate);
 
-    filtered = filtered.filter(item => item.date >= timeThreshold);
+    // Only published articles
+    filtered = filtered.filter(item => item.status === 'published');
 
     // Apply search filter
     if (this.searchQuery.trim()) {
@@ -170,15 +149,8 @@ export class PoliticsComponent implements OnInit {
       );
     }
 
-    // Sort by viewed count (most viewed first), then by published date (newest first)
-    filtered.sort((a, b) => {
-      // First sort by viewed count (descending)
-      if (b.viewed !== a.viewed) {
-        return b.viewed - a.viewed;
-      }
-      // Then sort by published date (newest first)
-      return b.date.getTime() - a.date.getTime();
-    });
+    // Sort by published date (newest first)
+    filtered.sort((a, b) => b.date.getTime() - a.date.getTime());
 
     this.filteredNewsItems = filtered;
     
@@ -191,6 +163,37 @@ export class PoliticsComponent implements OnInit {
     if (this.selectedNewsItem && !this.filteredNewsItems.find(item => item.id === this.selectedNewsItem?.id)) {
       this.selectedNewsItem = this.filteredNewsItems.length > 0 ? this.filteredNewsItems[0] : null;
     }
+  }
+
+  /**
+   * Compute the active date range from the calendar controls
+   */
+  private getCurrentRange(): { startDate: Date; endDate: Date } {
+    const base = new Date(this.selectedDate);
+    let startDate: Date;
+    let endDate: Date;
+
+    if (this.dateRangeMode === 'today' || this.selectedTimeFilter === 'day') {
+      startDate = new Date(base.getFullYear(), base.getMonth(), base.getDate());
+      endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 1);
+      return { startDate, endDate };
+    }
+
+    if (this.dateRangeMode === 'week' || this.selectedTimeFilter === 'week') {
+      // Start of week (Sunday-based)
+      startDate = new Date(base);
+      startDate.setDate(base.getDate() - base.getDay());
+      startDate.setHours(0, 0, 0, 0);
+      endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 7);
+      return { startDate, endDate };
+    }
+
+    // Month range
+    startDate = new Date(base.getFullYear(), base.getMonth(), 1);
+    endDate = new Date(base.getFullYear(), base.getMonth() + 1, 1);
+    return { startDate, endDate };
   }
 
   /**

@@ -1,0 +1,234 @@
+<div class="news-articles-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>
+        <mat-icon>article</mat-icon>
+        News Articles
+      </h1>
+      <div>
+        <button mat-raised-button color="accent" (click)="createTestArticle()" style="margin-right: 8px;">
+          <mat-icon>bug_report</mat-icon>
+          Create Test Article
+        </button>
+        <button mat-raised-button color="warn" (click)="deleteSelected()" [disabled]="selection.isEmpty()" style="margin-right: 8px;">
+          <mat-icon>delete</mat-icon>
+          Delete Selected
+        </button>
+        <button mat-raised-button color="primary" (click)="openCreateDialog()">
+          <mat-icon>add</mat-icon>
+          New Article
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon total">
+            <mat-icon>description</mat-icon>
+          </div>
+          <div class="stat-details">
+            <h3>{{ stats.total }}</h3>
+            <p>Total Articles</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon published">
+            <mat-icon>publish</mat-icon>
+          </div>
+          <div class="stat-details">
+            <h3>{{ stats.published }}</h3>
+            <p>Published</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon draft">
+            <mat-icon>edit</mat-icon>
+          </div>
+          <div class="stat-details">
+            <h3>{{ stats.drafts }}</h3>
+            <p>Drafts</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon archived">
+            <mat-icon>archive</mat-icon>
+          </div>
+          <div class="stat-details">
+            <h3>{{ stats.archived }}</h3>
+            <p>Archived</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Filters and Search -->
+  <mat-card class="filter-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="status-filter">
+          <mat-label>Filter by Status</mat-label>
+          <mat-select [(value)]="selectedStatus" (selectionChange)="onStatusChange()">
+            <mat-option *ngFor="let option of statusOptions" [value]="option.value">
+              {{ option.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search articles...</mat-label>
+          <input matInput (keyup)="applyFilter($event)" placeholder="Search by title, author, or category">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Articles Table -->
+  <mat-card class="table-card">
+    <mat-card-content>
+      <div class="table-container" *ngIf="!loading; else loadingTemplate">
+        <table mat-table [dataSource]="dataSource" class="articles-table" matSort>
+
+          <ng-container matColumnDef="select">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-checkbox
+                (change)="masterToggle()"
+                [checked]="isAllSelected()"
+                [indeterminate]="selection.hasValue() && !isAllSelected()"
+                [aria-label]="checkboxLabel()">
+              </mat-checkbox>
+            </th>
+            <td mat-cell *matCellDef="let row">
+              <mat-checkbox
+                (click)="$event.stopPropagation()"
+                (change)="selection.toggle(row)"
+                [checked]="selection.isSelected(row)"
+                [aria-label]="checkboxLabel(row)">
+              </mat-checkbox>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="title">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Title</th>
+            <td mat-cell *matCellDef="let article">
+              <div class="title-cell">
+                <a [routerLink]="['/admin/news', article.id]" class="title-link">
+                  <strong>{{ article.title }}</strong>
+                </a>
+                <p class="excerpt">{{ article.excerpt | slice:0:100 }}...</p>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="author">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Author</th>
+            <td mat-cell *matCellDef="let article">{{ article.author }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+            <td mat-cell *matCellDef="let article">
+              <mat-chip 
+                class="status-chip"
+                [style.background-color]="getStatusColor(article.status)"
+                [style.color]="'white'"
+                (click)="toggleStatus(article)"
+                matTooltip="Toggle status">
+                {{ article.status | titlecase }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="category">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Category</th>
+            <td mat-cell *matCellDef="let article">{{ article.category }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="publishedDate">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Published Date</th>
+            <td mat-cell *matCellDef="let article">
+              {{ (article.publishedDate | date:'MMM dd, yyyy') || '-' }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="views">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Views</th>
+            <td mat-cell *matCellDef="let article">
+              <div class="views-cell">
+                <mat-icon>visibility</mat-icon>
+                {{ article.views || 0 }}
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let article">
+              <button mat-icon-button [matMenuTriggerFor]="articleMenu" aria-label="More actions">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #articleMenu="matMenu">
+                <button mat-menu-item (click)="openEditDialog(article)">
+                  <mat-icon>edit</mat-icon>
+                  <span>Edit</span>
+                </button>
+                <button mat-menu-item (click)="deleteArticle(article)" class="delete-action">
+                  <mat-icon>delete</mat-icon>
+                  <span>Delete</span>
+                </button>
+              </mat-menu>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <mat-paginator
+          [length]="dataSource.data.length || 0"
+          [pageSize]="20"
+          [pageSizeOptions]="[10, 20, 50]"
+          showFirstLastButtons>
+        </mat-paginator>
+
+        <div class="no-data" *ngIf="dataSource.data.length === 0">
+          <mat-icon>article</mat-icon>
+          <h3>No articles found</h3>
+          <p>Create your first news article to get started.</p>
+          <button mat-raised-button color="primary" (click)="openCreateDialog()">
+            <mat-icon>add</mat-icon>
+            Create Article
+          </button>
+        </div>
+      </div>
+
+      <ng-template #loadingTemplate>
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Loading articles...</p>
+        </div>
+      </ng-template>
+    </mat-card-content>
+  </mat-card>
+</div>
