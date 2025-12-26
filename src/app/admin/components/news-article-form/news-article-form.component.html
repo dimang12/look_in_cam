@@ -14,17 +14,6 @@
         <mat-error>{{ getTitleErrorMessage() }}</mat-error>
       </mat-form-field>
 
-      <!-- Excerpt -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Excerpt *</mat-label>
-        <textarea matInput formControlName="excerpt" rows="3" 
-                  placeholder="Brief summary of the article (20-500 characters)"></textarea>
-        <mat-hint align="end">
-          {{ articleForm.get('excerpt')?.value?.length || 0 }}/500
-        </mat-hint>
-        <mat-error>{{ getExcerptErrorMessage() }}</mat-error>
-      </mat-form-field>
-
       <!-- Author and Category Row -->
       <div class="form-row">
         <mat-form-field appearance="outline" class="half-width">
@@ -78,6 +67,42 @@
         </mat-hint>
         <mat-error>{{ getContentErrorMessage() }}</mat-error>
       </mat-form-field>
+
+      <!-- Summary - Rich Text -->
+      <div class="rich-text-field">
+        <label class="rich-text-label">Summary</label>
+        <quill-editor 
+          formControlName="summary"
+          [modules]="quillModules"
+          placeholder="Write a comprehensive summary of the article..."
+          class="quill-editor">
+        </quill-editor>
+        <mat-hint class="rich-text-hint">Optional: Detailed summary with rich text formatting</mat-hint>
+      </div>
+
+      <!-- Political Perspective - Rich Text -->
+      <div class="rich-text-field">
+        <label class="rich-text-label">Political Perspective</label>
+        <quill-editor 
+          formControlName="political_perspective"
+          [modules]="quillModules"
+          placeholder="Analyze the political perspective and implications..."
+          class="quill-editor">
+        </quill-editor>
+        <mat-hint class="rich-text-hint">Optional: Political analysis with rich text formatting</mat-hint>
+      </div>
+
+      <!-- Cambodia Impact - Rich Text -->
+      <div class="rich-text-field">
+        <label class="rich-text-label">Cambodia Impact</label>
+        <quill-editor 
+          formControlName="cambodia_impact"
+          [modules]="quillModules"
+          placeholder="Describe the impact on Cambodia..."
+          class="quill-editor">
+        </quill-editor>
+        <mat-hint class="rich-text-hint">Optional: Cambodia-specific impact analysis with rich text formatting</mat-hint>
+      </div>
 
     </form>
   </div>

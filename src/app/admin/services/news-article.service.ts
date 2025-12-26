@@ -49,12 +49,10 @@ export class NewsArticleService {
 
         querySnapshot.forEach(doc => {
           const data = doc.data();
-          console.log('NewsArticleService: Processing document:', doc.id, data);
           articles.push({
             id: doc.id,
             title: data['title'] || 'Untitled',
             content: data['content'] || '',
-            excerpt: data['excerpt'] || '',
             author: data['author'] || 'Unknown',
             publishedDate: data['publishedDate']?.toDate(),
             createdDate: data['createdDate']?.toDate() || new Date(),
@@ -63,12 +61,13 @@ export class NewsArticleService {
             category: data['category'] || 'General',
             tags: data['tags'] || [],
             featuredImage: data['featuredImage'],
-            views: data['views'] || 0
+            views: data['views'] || 0,
+            summary: data['summary'] || '',
+            political_perspective: data['political_perspective'] || '',
+            cambodia_impact: data['cambodia_impact'] || ''
           });
           lastDocument = doc;
         });
-
-        console.log('NewsArticleService: Returning', articles.length, 'articles');
         return { articles, lastDoc: lastDocument };
       }),
       catchError(error => {
@@ -100,7 +99,6 @@ export class NewsArticleService {
             id: doc.id,
             title: data['title'] || 'Untitled',
             content: data['content'] || '',
-            excerpt: data['excerpt'] || '',
             author: data['author'] || 'Unknown',
             publishedDate: data['publishedDate']?.toDate(),
             createdDate: data['createdDate']?.toDate() || new Date(),
@@ -109,7 +107,10 @@ export class NewsArticleService {
             category: data['category'] || 'General',
             tags: data['tags'] || [],
             featuredImage: data['featuredImage'],
-            views: data['views'] || 0
+            views: data['views'] || 0,
+            summary: data['summary'] || '',
+            political_perspective: data['political_perspective'] || '',
+            cambodia_impact: data['cambodia_impact'] || ''
           });
         });
         return articles;
@@ -159,12 +160,14 @@ export class NewsArticleService {
     // Only add fields that have values
     if (articleData.title !== undefined) updateData.title = articleData.title;
     if (articleData.content !== undefined) updateData.content = articleData.content;
-    if (articleData.excerpt !== undefined) updateData.excerpt = articleData.excerpt;
     if (articleData.author !== undefined) updateData.author = articleData.author;
     if (articleData.category !== undefined) updateData.category = articleData.category;
     if (articleData.status !== undefined) updateData.status = articleData.status;
     if (articleData.tags !== undefined) updateData.tags = articleData.tags;
     if (articleData.featuredImage !== undefined) updateData.featuredImage = articleData.featuredImage;
+    if (articleData.summary !== undefined) updateData.summary = articleData.summary;
+    if (articleData.political_perspective !== undefined) updateData.political_perspective = articleData.political_perspective;
+    if (articleData.cambodia_impact !== undefined) updateData.cambodia_impact = articleData.cambodia_impact;
 
     // If status is being changed to published and publishedDate is not set
     if (articleData.status === 'published') {
@@ -246,7 +249,6 @@ export class NewsArticleService {
           id: snapshot.id,
           title: data['title'] || 'Untitled',
           content: data['content'] || '',
-          excerpt: data['excerpt'] || '',
           author: data['author'] || 'Unknown',
           publishedDate: data['publishedDate']?.toDate(),
           createdDate: data['createdDate']?.toDate() || new Date(),
@@ -255,7 +257,10 @@ export class NewsArticleService {
           category: data['category'] || 'General',
           tags: data['tags'] || [],
           featuredImage: data['featuredImage'],
-          views: data['views'] || 0
+          views: data['views'] || 0,
+          summary: data['summary'] || '',
+          political_perspective: data['political_perspective'] || '',
+          cambodia_impact: data['cambodia_impact'] || ''
         } as NewsArticle;
       }),
       catchError(error => {

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DateRangeMode } from '../../components/calendar-controls/calendar-controls.component';
 import { FirebaseService } from '../../services/firebase.service';
 
@@ -12,7 +12,10 @@ export interface NewsItem {
   content: string;
   status?: 'draft' | 'published' | 'archived';
   summary_md?: string;
+  summary?: string;
   political_movement?: string;
+  political_perspective?: string;
+
   cambodia_impact?: string;
   khmer_translation?: string;
   relevant_to_border_conflict?: boolean;
@@ -25,7 +28,7 @@ export interface NewsItem {
   templateUrl: './politics.component.html',
   styleUrls: ['./politics.component.css']
 })
-export class PoliticsComponent implements OnInit {
+export class PoliticsComponent implements OnInit, OnDestroy {
 
   // Filter options
   selectedTimeFilter: 'day' | 'week' | 'month' = 'week';
@@ -44,10 +47,27 @@ export class PoliticsComponent implements OnInit {
   loading = false;
   error: string | null = null;
 
-  constructor(private firebaseService: FirebaseService) {}
+  // Mobile responsiveness
+  isMobileView = false;
+
+  constructor(private firebaseService: FirebaseService) {
+    this.checkMobileView();
+  }
 
   ngOnInit(): void {
     this.loadNewsArticles();
+    window.addEventListener('resize', () => this.checkMobileView());
+  }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('resize', () => this.checkMobileView());
+  }
+
+  /**
+   * Check if the current view is mobile
+   */
+  checkMobileView(): void {
+    this.isMobileView = window.innerWidth < 1024; // lg breakpoint
   }
 
   /**
@@ -60,7 +80,6 @@ export class PoliticsComponent implements OnInit {
     try {
       // Get news articles from Firestore
       const articles = await this.firebaseService.getNewsArticles();
-      
       // Transform Firestore data to NewsItem format
       this.allNewsItems = articles.map(article => ({
         id: article.doc_id || `temp_${Date.now()}_${Math.random()}`,
@@ -72,9 +91,9 @@ export class PoliticsComponent implements OnInit {
         date: this.parseDate(article.date || article.analyzed_at),
         status: (article as any).status || 'draft',
         summary_md: article.summary_md,
-        political_movement: article.political_movement,
+        political_perspective: article.political_perspective || '',
         cambodia_impact: article.cambodia_impact,
-        khmer_translation: article.khmer_translation,
+        summary: article.summary,
         relevant_to_border_conflict: article.relevant_to_border_conflict,
         analyzed_at: article.analyzed_at,
         viewed: article.viewed || 0
@@ -264,6 +283,62 @@ export class PoliticsComponent implements OnInit {
    */
   closeNewsDetail(): void {
     this.selectedNewsItem = null;
+  }
+
+  /**
+   * Navigate to the next article in the filtered list
+   */
+  goToNextArticle(): void {
+    if (!this.selectedNewsItem || this.filteredNewsItems.length === 0) return;
+    
+    const currentIndex = this.filteredNewsItems.findIndex(
+      item => item.id === this.selectedNewsItem?.id
+    );
+    
+    if (currentIndex !== -1 && currentIndex < this.filteredNewsItems.length - 1) {
+      this.selectNewsItem(this.filteredNewsItems[currentIndex + 1]);
+    }
+  }
+
+  /**
+   * Navigate to the previous article in the filtered list
+   */
+  goToPreviousArticle(): void {
+    if (!this.selectedNewsItem || this.filteredNewsItems.length === 0) return;
+    
+    const currentIndex = this.filteredNewsItems.findIndex(
+      item => item.id === this.selectedNewsItem?.id
+    );
+    
+    if (currentIndex > 0) {
+      this.selectNewsItem(this.filteredNewsItems[currentIndex - 1]);
+    }
+  }
+
+  /**
+   * Check if there is a next article available
+   */
+  hasNextArticle(): boolean {
+    if (!this.selectedNewsItem || this.filteredNewsItems.length === 0) return false;
+    
+    const currentIndex = this.filteredNewsItems.findIndex(
+      item => item.id === this.selectedNewsItem?.id
+    );
+    
+    return currentIndex !== -1 && currentIndex < this.filteredNewsItems.length - 1;
+  }
+
+  /**
+   * Check if there is a previous article available
+   */
+  hasPreviousArticle(): boolean {
+    if (!this.selectedNewsItem || this.filteredNewsItems.length === 0) return false;
+    
+    const currentIndex = this.filteredNewsItems.findIndex(
+      item => item.id === this.selectedNewsItem?.id
+    );
+    
+    return currentIndex > 0;
   }
 
   /**

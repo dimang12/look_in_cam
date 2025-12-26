@@ -19,6 +19,26 @@ export class NewsArticleFormComponent implements OnInit {
   loading = false;
   isEdit: boolean;
 
+  // Quill editor configuration
+  quillModules = {
+    toolbar: [
+      ['bold', 'italic', 'underline', 'strike'],
+      ['blockquote', 'code-block'],
+      [{ 'header': 1 }, { 'header': 2 }],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'script': 'sub'}, { 'script': 'super' }],
+      [{ 'indent': '-1'}, { 'indent': '+1' }],
+      [{ 'direction': 'rtl' }],
+      [{ 'size': ['small', false, 'large', 'huge'] }],
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'font': [] }],
+      [{ 'align': [] }],
+      ['clean'],
+      ['link']
+    ]
+  };
+
   categories = [
     'ព្រំដែន',
     'Breaking News',
@@ -58,26 +78,30 @@ export class NewsArticleFormComponent implements OnInit {
   private createForm(): FormGroup {
     return this.fb.group({
       title: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(200)]],
-      excerpt: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(500)]],
       content: ['', [Validators.required, Validators.minLength(50)]],
       author: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
       category: ['', Validators.required],
       status: ['draft', Validators.required],
       tags: [''],
-      featuredImage: ['']
+      featuredImage: [''],
+      summary: [''],
+      political_perspective: [''],
+      cambodia_impact: ['']
     });
   }
 
   private populateForm(article: NewsArticle): void {
     this.articleForm.patchValue({
       title: article.title,
-      excerpt: article.excerpt,
       content: article.content,
       author: article.author,
       category: article.category,
       status: article.status,
       tags: article.tags.join(', '),
-      featuredImage: article.featuredImage || ''
+      featuredImage: article.featuredImage || '',
+      summary: article.summary || '',
+      political_perspective: article.political_perspective || '',
+      cambodia_impact: article.cambodia_impact || ''
     });
   }
 
@@ -86,9 +110,10 @@ export class NewsArticleFormComponent implements OnInit {
       this.loading = true;
       const formValue = this.articleForm.value;
       
+      console.log('Form values:', formValue);
+      
       const articleData: NewsArticleFormData = {
         title: formValue.title.trim(),
-        excerpt: formValue.excerpt.trim(),
         content: formValue.content.trim(),
         author: formValue.author.trim(),
         category: formValue.category,
@@ -101,6 +126,13 @@ export class NewsArticleFormComponent implements OnInit {
       if (featuredImageValue) {
         articleData.featuredImage = featuredImageValue;
       }
+
+      // Include rich text fields (always include them, even if empty)
+      articleData.summary = formValue.summary || '';
+      articleData.political_perspective = formValue.political_perspective || '';
+      articleData.cambodia_impact = formValue.cambodia_impact || '';
+      
+      console.log('Article data to save:', articleData);
 
       if (this.isEdit) {
         this.updateArticle(articleData);
@@ -161,14 +193,6 @@ export class NewsArticleFormComponent implements OnInit {
     if (control?.hasError('required')) return 'Title is required';
     if (control?.hasError('minlength')) return 'Title must be at least 5 characters';
     if (control?.hasError('maxlength')) return 'Title must not exceed 200 characters';
-    return '';
-  }
-
-  getExcerptErrorMessage(): string {
-    const control = this.articleForm.get('excerpt');
-    if (control?.hasError('required')) return 'Excerpt is required';
-    if (control?.hasError('minlength')) return 'Excerpt must be at least 20 characters';
-    if (control?.hasError('maxlength')) return 'Excerpt must not exceed 500 characters';
     return '';
   }
 

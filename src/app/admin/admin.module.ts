@@ -25,6 +25,10 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
+
+// Quill Rich Text Editor
+import { QuillModule } from 'ngx-quill';
 
 // Admin Components
 import { AdminLayoutComponent } from './components/admin-layout/admin-layout.component';
@@ -95,7 +99,9 @@ import { AdminRoutingModule } from './admin-routing.module';
     MatDatepickerModule,
     MatNativeDateModule,
     MatMenuModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatTooltipModule,
+    QuillModule.forRoot()
   ],
   providers: [
     AdminAuthService,
