@@ -34,7 +34,9 @@ export interface NewsArticle {
   content: string;
   relevant_to_border_conflict?: boolean;
   summary_md?: string;
+  summary?: string;
   political_movement?: string;
+  political_perspective?: string;
   cambodia_impact?: string;
   khmer_translation?: string;
   analyzed_at?: string;

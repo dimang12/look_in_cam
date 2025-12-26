@@ -1,0 +1,39 @@
+<div class="admin-sidebar">
+  <div class="sidebar-header">
+    <div class="logo-section">
+      <mat-icon class="logo-icon">admin_panel_settings</mat-icon>
+      <span class="logo-text">Admin Panel</span>
+    </div>
+  </div>
+  
+  <nav class="sidebar-nav">
+    <mat-nav-list>
+      <a 
+        mat-list-item 
+        *ngFor="let item of menuItems"
+        [routerLink]="item.route"
+        routerLinkActive="active-item"
+        class="nav-item">
+        
+        <mat-icon matListIcon [class.active-icon]="isActiveRoute(item.route)">
+          {{ item.icon }}
+        </mat-icon>
+        
+        <span class="nav-label" [class.active-label]="isActiveRoute(item.route)">
+          {{ item.label }}
+        </span>
+        
+        <span class="nav-badge" *ngIf="item.badge">
+          {{ item.badge }}
+        </span>
+      </a>
+    </mat-nav-list>
+  </nav>
+  
+  <div class="sidebar-footer">
+    <div class="version-info">
+      <mat-icon>info</mat-icon>
+      <span>Version 1.0.0</span>
+    </div>
+  </div>
+</div>

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DateRangeMode } from '../../components/calendar-controls/calendar-controls.component';
 import { FirebaseService } from '../../services/firebase.service';
 
@@ -10,8 +10,12 @@ export interface NewsItem {
   date: Date;
   snippet: string;
   content: string;
+  status?: 'draft' | 'published' | 'archived';
   summary_md?: string;
+  summary?: string;
   political_movement?: string;
+  political_perspective?: string;
+
   cambodia_impact?: string;
   khmer_translation?: string;
   relevant_to_border_conflict?: boolean;
@@ -24,7 +28,7 @@ export interface NewsItem {
   templateUrl: './politics.component.html',
   styleUrls: ['./politics.component.css']
 })
-export class PoliticsComponent implements OnInit {
+export class PoliticsComponent implements OnInit, OnDestroy {
 
   // Filter options
   selectedTimeFilter: 'day' | 'week' | 'month' = 'week';
@@ -43,10 +47,27 @@ export class PoliticsComponent implements OnInit {
   loading = false;
   error: string | null = null;
 
-  constructor(private firebaseService: FirebaseService) {}
+  // Mobile responsiveness
+  isMobileView = false;
+
+  constructor(private firebaseService: FirebaseService) {
+    this.checkMobileView();
+  }
 
   ngOnInit(): void {
     this.loadNewsArticles();
+    window.addEventListener('resize', () => this.checkMobileView());
+  }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('resize', () => this.checkMobileView());
+  }
+
+  /**
+   * Check if the current view is mobile
+   */
+  checkMobileView(): void {
+    this.isMobileView = window.innerWidth < 1024; // lg breakpoint
   }
 
   /**
@@ -59,7 +80,6 @@ export class PoliticsComponent implements OnInit {
     try {
       // Get news articles from Firestore
       const articles = await this.firebaseService.getNewsArticles();
-      
       // Transform Firestore data to NewsItem format
       this.allNewsItems = articles.map(article => ({
         id: article.doc_id || `temp_${Date.now()}_${Math.random()}`,
@@ -69,27 +89,16 @@ export class PoliticsComponent implements OnInit {
         snippet: article.snippet || '',
         content: article.content || '',
         date: this.parseDate(article.date || article.analyzed_at),
+        status: (article as any).status || 'draft',
         summary_md: article.summary_md,
-        political_movement: article.political_movement,
+        political_perspective: article.political_perspective || '',
         cambodia_impact: article.cambodia_impact,
-        khmer_translation: article.khmer_translation,
+        summary: article.summary,
         relevant_to_border_conflict: article.relevant_to_border_conflict,
         analyzed_at: article.analyzed_at,
         viewed: article.viewed || 0
       }));
-
-      console.log(`Loaded ${this.allNewsItems.length} news articles from Firestore`);
       
-      // Debug: Log first article to see structure
-      if (this.allNewsItems.length > 0) {
-        console.log('First article structure:', this.allNewsItems[0]);
-        console.log('Fields check:', {
-          summary_md: this.allNewsItems[0].summary_md,
-          political_movement: this.allNewsItems[0].political_movement,
-          cambodia_impact: this.allNewsItems[0].cambodia_impact,
-          khmer_translation: this.allNewsItems[0].khmer_translation
-        });
-      }
       
       // Apply filters after loading
       this.applyFilters();
@@ -142,23 +151,12 @@ export class PoliticsComponent implements OnInit {
   applyFilters(): void {
     let filtered = [...this.allNewsItems];
 
-    // Apply time filter
-    const now = new Date();
-    const timeThreshold = new Date();
-    
-    switch (this.selectedTimeFilter) {
-      case 'day':
-        timeThreshold.setDate(now.getDate() - 1);
-        break;
-      case 'week':
-        timeThreshold.setDate(now.getDate() - 7);
-        break;
-      case 'month':
-        timeThreshold.setMonth(now.getMonth() - 1);
-        break;
-    }
+    // Apply date range filter based on calendar controls
+    const { startDate, endDate } = this.getCurrentRange();
+    filtered = filtered.filter(item => item.date >= startDate && item.date < endDate);
 
-    filtered = filtered.filter(item => item.date >= timeThreshold);
+    // Only published articles
+    filtered = filtered.filter(item => item.status === 'published');
 
     // Apply search filter
     if (this.searchQuery.trim()) {
@@ -170,15 +168,8 @@ export class PoliticsComponent implements OnInit {
       );
     }
 
-    // Sort by viewed count (most viewed first), then by published date (newest first)
-    filtered.sort((a, b) => {
-      // First sort by viewed count (descending)
-      if (b.viewed !== a.viewed) {
-        return b.viewed - a.viewed;
-      }
-      // Then sort by published date (newest first)
-      return b.date.getTime() - a.date.getTime();
-    });
+    // Sort by published date (newest first)
+    filtered.sort((a, b) => b.date.getTime() - a.date.getTime());
 
     this.filteredNewsItems = filtered;
     
@@ -191,6 +182,37 @@ export class PoliticsComponent implements OnInit {
     if (this.selectedNewsItem && !this.filteredNewsItems.find(item => item.id === this.selectedNewsItem?.id)) {
       this.selectedNewsItem = this.filteredNewsItems.length > 0 ? this.filteredNewsItems[0] : null;
     }
+  }
+
+  /**
+   * Compute the active date range from the calendar controls
+   */
+  private getCurrentRange(): { startDate: Date; endDate: Date } {
+    const base = new Date(this.selectedDate);
+    let startDate: Date;
+    let endDate: Date;
+
+    if (this.dateRangeMode === 'today' || this.selectedTimeFilter === 'day') {
+      startDate = new Date(base.getFullYear(), base.getMonth(), base.getDate());
+      endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 1);
+      return { startDate, endDate };
+    }
+
+    if (this.dateRangeMode === 'week' || this.selectedTimeFilter === 'week') {
+      // Start of week (Sunday-based)
+      startDate = new Date(base);
+      startDate.setDate(base.getDate() - base.getDay());
+      startDate.setHours(0, 0, 0, 0);
+      endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 7);
+      return { startDate, endDate };
+    }
+
+    // Month range
+    startDate = new Date(base.getFullYear(), base.getMonth(), 1);
+    endDate = new Date(base.getFullYear(), base.getMonth() + 1, 1);
+    return { startDate, endDate };
   }
 
   /**
@@ -261,6 +283,62 @@ export class PoliticsComponent implements OnInit {
    */
   closeNewsDetail(): void {
     this.selectedNewsItem = null;
+  }
+
+  /**
+   * Navigate to the next article in the filtered list
+   */
+  goToNextArticle(): void {
+    if (!this.selectedNewsItem || this.filteredNewsItems.length === 0) return;
+    
+    const currentIndex = this.filteredNewsItems.findIndex(
+      item => item.id === this.selectedNewsItem?.id
+    );
+    
+    if (currentIndex !== -1 && currentIndex < this.filteredNewsItems.length - 1) {
+      this.selectNewsItem(this.filteredNewsItems[currentIndex + 1]);
+    }
+  }
+
+  /**
+   * Navigate to the previous article in the filtered list
+   */
+  goToPreviousArticle(): void {
+    if (!this.selectedNewsItem || this.filteredNewsItems.length === 0) return;
+    
+    const currentIndex = this.filteredNewsItems.findIndex(
+      item => item.id === this.selectedNewsItem?.id
+    );
+    
+    if (currentIndex > 0) {
+      this.selectNewsItem(this.filteredNewsItems[currentIndex - 1]);
+    }
+  }
+
+  /**
+   * Check if there is a next article available
+   */
+  hasNextArticle(): boolean {
+    if (!this.selectedNewsItem || this.filteredNewsItems.length === 0) return false;
+    
+    const currentIndex = this.filteredNewsItems.findIndex(
+      item => item.id === this.selectedNewsItem?.id
+    );
+    
+    return currentIndex !== -1 && currentIndex < this.filteredNewsItems.length - 1;
+  }
+
+  /**
+   * Check if there is a previous article available
+   */
+  hasPreviousArticle(): boolean {
+    if (!this.selectedNewsItem || this.filteredNewsItems.length === 0) return false;
+    
+    const currentIndex = this.filteredNewsItems.findIndex(
+      item => item.id === this.selectedNewsItem?.id
+    );
+    
+    return currentIndex > 0;
   }
 
   /**

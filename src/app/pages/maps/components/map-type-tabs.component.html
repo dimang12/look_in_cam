@@ -1,0 +1,10 @@
+<mat-tab-group 
+  [selectedIndex]="selectedIndex" 
+  (selectedTabChange)="onTabChange($event)"
+  class="map-type-tabs"
+  mat-stretch-tabs="false"
+  animationDuration="200ms">
+  <mat-tab *ngFor="let subtype of subtypes" [label]="subtype.label">
+    <!-- Tab content can be empty as we're just using it for navigation -->
+  </mat-tab>
+</mat-tab-group>

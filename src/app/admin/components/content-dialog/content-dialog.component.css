@@ -1,0 +1,58 @@
+.content-dialog {
+  min-width: 500px;
+}
+
+.content-dialog h2 {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.content-dialog h2 mat-icon {
+  margin-right: 8px;
+  color: #3f51b5;
+}
+
+.content-form {
+  padding: 16px 0;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.half-width {
+  flex: 1;
+}
+
+.info-section {
+  margin: 16px 0;
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  color: #666;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.info-item mat-icon {
+  margin-right: 8px;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}

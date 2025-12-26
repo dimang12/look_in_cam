@@ -15,7 +15,7 @@ import { GoogleMapsModule } from '@angular/google-maps';
 import { AppLoadingOverlayComponent } from './components/UIs/app-loading-overlay.component';
 import { ButtonComponent } from './components/UIs/basisUIs/button/button.component';
 import { MapsComponent } from './pages/maps/maps.component';
-import { MapTypeTabsComponent } from './pages/maps/components/map-type/map-type-tabs.component';
+import { MapTypeTabsComponent } from './pages/maps/components/map-type-tabs.component';
 import { SubmenuComponent } from './layout/submenu/submenu.component';
 import { PoliticsComponent } from './pages/politics/politics.component';
 import { CalendarControlsComponent } from './components/calendar-controls/calendar-controls.component';

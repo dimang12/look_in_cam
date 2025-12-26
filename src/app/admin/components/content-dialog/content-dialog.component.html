@@ -1,0 +1,63 @@
+<div class="content-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>{{ isEdit ? 'edit' : 'post_add' }}</mat-icon>
+    {{ isEdit ? 'Edit Content' : 'Create New Content' }}
+  </h2>
+
+  <mat-dialog-content>
+    <form [formGroup]="contentForm" class="content-form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Title</mat-label>
+        <input matInput formControlName="title" placeholder="Enter content title">
+        <mat-error>{{ getErrorMessage('title') }}</mat-error>
+      </mat-form-field>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Type</mat-label>
+          <mat-select formControlName="type">
+            <mat-option *ngFor="let type of types" [value]="type.value">
+              {{ type.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Status</mat-label>
+          <mat-select formControlName="status">
+            <mat-option *ngFor="let status of statuses" [value]="status.value">
+              {{ status.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Author</mat-label>
+        <input matInput formControlName="author" placeholder="Content author">
+      </mat-form-field>
+
+      <div class="info-section" *ngIf="isEdit">
+        <div class="info-item">
+          <mat-icon>visibility</mat-icon>
+          <span>View Count: {{ contentForm.get('viewCount')?.value | number }}</span>
+        </div>
+        <div class="info-item" *ngIf="data?.updatedAt">
+          <mat-icon>update</mat-icon>
+          <span>Last Updated: {{ data?.updatedAt | date:'short' }}</span>
+        </div>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Cancel</button>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="onSubmit()"
+      [disabled]="!contentForm.valid">
+      {{ isEdit ? 'Update' : 'Create' }}
+    </button>
+  </mat-dialog-actions>
+</div>

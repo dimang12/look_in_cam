@@ -1,0 +1,66 @@
+.admin-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.header-title {
+  margin: 0;
+  margin-left: 16px;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.header-spacer {
+  flex: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.user-info-menu {
+  padding: 0;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  min-width: 200px;
+}
+
+.user-info mat-icon {
+  margin-right: 12px;
+  color: #666;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.user-email {
+  color: #666;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* Menu Item Icons */
+::ng-deep .mat-menu-item mat-icon {
+  margin-right: 8px;
+  color: #666;
+}
